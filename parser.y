@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int erros_lexicos = 0;
+extern int erros_lexicos;
 int erros_sintaticos = 0;
 
 typedef struct No {
@@ -34,6 +34,8 @@ No* raiz = NULL;
     float fval;
     char* sval;
 }
+
+%token ERRO
 
 %token <sval> TIPO_INT TIPO_FLOAT TIPO_CHAR TIPO_STRING VOID
 %token <sval> IF ELSE WHILE FOR
@@ -620,7 +622,6 @@ void yyerror(const char* s) {
     fprintf(stderr, "Último token lido: %s\n", yytext);
     erros_sintaticos++;
 }
-
 int main(int argc, char** argv) {
     if (argc != 2) {
         printf("Uso: %s arquivo.txt\n", argv[0]);
@@ -636,26 +637,31 @@ int main(int argc, char** argv) {
     yyin = arquivo;
     
     printf("\n=== Iniciando análise ===\n");
-    int resultado = yyparse();
+    yyparse();  // removemos a variável resultado não utilizada
     
     printf("\n=== Resumo da análise ===\n");
     if (erros_lexicos > 0) {
         printf("Total de erros léxicos: %d\n", erros_lexicos);
+        printf("O código contém caracteres ou tokens inválidos.\n");
     }
     if (erros_sintaticos > 0) {
         printf("Total de erros sintáticos: %d\n", erros_sintaticos);
+        printf("O código contém estruturas sintáticas inválidas.\n");
     }
     
     if (erros_lexicos == 0 && erros_sintaticos == 0) {
+        printf("\nCódigo analisado com sucesso!\n");
         printf("\nÁrvore Sintática:\n");
         if (raiz != NULL) {
             imprimir_arvore(raiz, 0);
         } else {
             printf("ERRO: Raiz da árvore é NULL!\n");
         }
+    } else {
+        printf("\nA análise encontrou erros. Corrija-os e tente novamente.\n");
     }
     
     liberar_arvore(raiz);
     fclose(arquivo);
-    return resultado;
+    return (erros_lexicos + erros_sintaticos) > 0 ? 1 : 0;
 }

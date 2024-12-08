@@ -3,8 +3,16 @@
 #include <stdlib.h>
 #include "parser.tab.h"
 
+// [^ \t\n\r[:alnum:]_+\-*/%=<>!&|(){}\[\]"'.#@$^;,]+ { erro_lexico("Caractere(s) inválido(s)"); }
+//. { erro_lexico("Caractere inválido"); }
+
 int linha = 1;
-extern int erros_lexicos;
+int erros_lexicos = 0;
+
+void erro_lexico(const char* msg) {
+    fprintf(stderr, "Erro léxico na linha %d: %s - Token: '%s'\n", linha, msg, yytext);
+    erros_lexicos++;
+}
 
 #define YY_NO_INPUT
 #define YY_NO_UNPUT
@@ -16,7 +24,7 @@ extern int erros_lexicos;
 %x INSIDE_INTERPOLACAO
 
 %%
-[ \t]                    ;
+[ \t\r]                  ;  /* Ignora espaços, tabs e retorno de carro */
 [\n]                     { linha++; }
 
 "//".*                   ;
@@ -47,10 +55,7 @@ extern int erros_lexicos;
 [0-9]+"."[0-9]+         { yylval.fval = atof(yytext); return NUM_FLOAT; }
 \'[^\']\'               { yylval.sval = strdup(yytext); return CHAR; }
 
-    /* String com interpolação (começa com caractere $) */
 \"\$                     { BEGIN(STRING_INTERPOLACAO); yylval.sval = strdup(""); return STRING_START; }
-
-    /* String normal (não começa com $) */
 \"[^\"$][^\"]*\"        { yylval.sval = strdup(yytext); return STRING; }
 
 <STRING_INTERPOLACAO>\$\{ { BEGIN(INSIDE_INTERPOLACAO); return INTERPOLACAO_START; }
@@ -95,6 +100,8 @@ extern int erros_lexicos;
 "$"                      { return '$'; }
 "#"                      { return '#'; }
 "@"                      { return '@'; }
+
+.                        { erro_lexico("Caractere inválido"); }
 
 %%
 
