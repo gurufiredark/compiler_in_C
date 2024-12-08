@@ -37,12 +37,15 @@ No* raiz = NULL;
 
 %token <sval> TIPO_INT TIPO_FLOAT TIPO_CHAR TIPO_STRING VOID
 %token <sval> IF ELSE WHILE FOR
-%token <sval> RETURN MAIN INCLUDE
+%token <sval> RETURN MAIN INCLUDE PRINT SCAN
 %token <ival> NUM_INT
 %token <fval> NUM_FLOAT
 %token <sval> STRING CHAR ID
 %token <sval> IGUAL DIFERENTE MENOR MAIOR MENOR_IGUAL MAIOR_IGUAL
 %token <sval> E OU NAO INC DEC
+
+%token <sval> STRING_START STRING_END STRING_TEXT
+%token <sval> INTERPOLACAO_START INTERPOLACAO_END
 
 %right '='
 %left OU
@@ -57,9 +60,11 @@ No* raiz = NULL;
 
 %type <no> programa declaracoes declaracao declaracao_variavel tipo
 %type <no> declaracao_funcao bloco comandos comando expressao
-%type <no> atribuicao comando_if comando_while comando_for
+%type <no> atribuicao comando_if comando_while comando_for atribuicao_for
 %type <no> parametros lista_parametros parametro
 %type <no> includes include_stmt
+%type <no> comando_print comando_scan
+%type <no> string_interpolada partes_string parte_string
 
 %%
 
@@ -124,16 +129,23 @@ declaracao_variavel:
         $$ = criar_no("DECLARACAO_VAR", $2);
         adicionar_filho($$, $1);
     }
-     | tipo ID '[' NUM_INT ']' ';'  /* Regra para declaração de vetor */
+    | tipo ID '[' NUM_INT ']' ';'  /* vetor com tamanho específico */
     {
         char temp[32];
         sprintf(temp, "%s[%d]", $2, $4);
         $$ = criar_no("DECLARACAO_VETOR", temp);
         adicionar_filho($$, $1);
     }
-    | tipo ID '[' ']' '=' STRING ';'  /* inicialização direta com string */
+    | tipo ID '[' ']' ';'  /* vetor sem tamanho específico */
     {
-        $$ = criar_no("DECLARACAO_VETOR", $2);
+        char temp[32];
+        sprintf(temp, "%s[]", $2);
+        $$ = criar_no("DECLARACAO_VETOR", temp);
+        adicionar_filho($$, $1);
+    }
+    | tipo ID '[' ']' '=' STRING ';'  /* string com inicialização sem tamanho explícito */
+    {
+        $$ = criar_no("DECLARACAO_STRING", $2);
         adicionar_filho($$, $1);
         adicionar_filho($$, criar_no("STRING", $6));
     }
@@ -226,36 +238,113 @@ comandos:
     }
     | comando comandos
     {
-        $$ = $2;
+        $$ = criar_no("COMANDOS", "");
         adicionar_filho($$, $1);
+        adicionar_filho($$, $2);
     }
     | declaracao_variavel comandos
+    {
+        $$ = criar_no("COMANDOS", "");
+        adicionar_filho($$, $1);
+        adicionar_filho($$, $2);
+    }
+    ;
+
+comando:
+    atribuicao { $$ = $1; }
+    | comando_if { $$ = $1; }
+    | comando_while { $$ = $1; }
+    | comando_for { $$ = $1; }
+    | comando_print { $$ = $1; }
+    | comando_scan { $$ = $1; }
+    | RETURN expressao ';'
+    {
+        $$ = criar_no("RETURN", "");
+        adicionar_filho($$, $2);
+    }
+    ;
+
+comando_print:
+    PRINT '(' string_interpolada ')' ';'
+    {
+        $$ = criar_no("PRINT", "");
+        adicionar_filho($$, $3);
+    }
+    | PRINT '(' ID ')' ';'  /* Apenas identificadores simples */
+    {
+        $$ = criar_no("PRINT", "");
+        adicionar_filho($$, criar_no("ID", $3));
+    }
+    | PRINT '(' NUM_INT ')' ';'  /* Números inteiros */
+    {
+        char valor[32];
+        sprintf(valor, "%d", $3);
+        $$ = criar_no("PRINT", "");
+        adicionar_filho($$, criar_no("NUM_INT", valor));
+    }
+    | PRINT '(' NUM_FLOAT ')' ';'  /* Números float */
+    {
+        char valor[32];
+        sprintf(valor, "%f", $3);
+        $$ = criar_no("PRINT", "");
+        adicionar_filho($$, criar_no("NUM_FLOAT", valor));
+    }
+    | PRINT '(' STRING ')' ';'  /* Strings literais simples */
+    {
+        $$ = criar_no("PRINT", "");
+        adicionar_filho($$, criar_no("STRING", $3));
+    }
+    | PRINT '(' CHAR ')' ';'  /* Caracteres */
+    {
+        $$ = criar_no("PRINT", "");
+        adicionar_filho($$, criar_no("CHAR", $3));
+    }
+    ;
+
+string_interpolada:
+    STRING_START partes_string STRING_END
+    {
+        $$ = criar_no("STRING_INTERPOLADA", "");
+        adicionar_filho($$, $2);
+    }
+    ;
+
+partes_string:
+    parte_string
+    {
+        $$ = criar_no("PARTES_STRING", "");
+        adicionar_filho($$, $1);
+    }
+    | parte_string partes_string
     {
         $$ = $2;
         adicionar_filho($$, $1);
     }
     ;
 
-comando:
-    atribuicao 
-    { 
-        $$ = $1;
-    }
-    | comando_if 
-    { 
-        $$ = $1;
-    }
-    | comando_while 
-    { 
-        $$ = $1;
-    }
-    | comando_for 
-    {   $$  = $1; 
-    }
-    | RETURN expressao ';'
+parte_string:
+    STRING_TEXT
     {
-        $$ = criar_no("RETURN", "");
-        adicionar_filho($$, $2);
+        $$ = criar_no("TEXTO", $1);
+    }
+    | INTERPOLACAO_START ID INTERPOLACAO_END
+    {
+        $$ = criar_no("INTERPOLACAO", "");
+        adicionar_filho($$, criar_no("ID", $2));
+    }
+    ;
+
+comando_scan:
+    SCAN '(' ID ')' ';'
+    {
+        $$ = criar_no("SCAN", "");
+        adicionar_filho($$, criar_no("ID", $3));
+    }
+    | SCAN '(' ID '[' expressao ']' ')' ';'
+    {
+        $$ = criar_no("SCAN_VETOR", "");
+        adicionar_filho($$, criar_no("ID", $3));
+        adicionar_filho($$, $5);  /* índice do vetor */
     }
     ;
 
@@ -285,14 +374,24 @@ comando_while:
     ;
 
 comando_for:
-    FOR '(' atribuicao expressao ';' expressao ')' bloco
+    FOR '(' atribuicao_for ';' expressao ';' expressao ')' bloco
     {
         $$ = criar_no("FOR", "");
         adicionar_filho($$, $3); // inicialização
-        adicionar_filho($$, $4); // condição
-        adicionar_filho($$, $6); // incremento
-        adicionar_filho($$, $8); // bloco
+        adicionar_filho($$, $5); // condição
+        adicionar_filho($$, $7); // incremento
+        adicionar_filho($$, $9); // bloco
     }
+    ;
+
+atribuicao_for:
+    ID '=' expressao
+    {
+        $$ = criar_no("ATRIBUICAO", "");
+        adicionar_filho($$, criar_no("ID", $1));
+        adicionar_filho($$, $3);
+    }
+    | tipo ID '=' expressao
     ;
 
 atribuicao:
@@ -302,14 +401,19 @@ atribuicao:
         adicionar_filho($$, criar_no("ID", $1));
         adicionar_filho($$, $3);
     }
-    | ID '[' expressao ']' '=' expressao ';'  /* Regra para atribuição em vetor */
+    | ID '[' expressao ']' '=' expressao ';'  /* Atribuição em posição específica do vetor */
     {
         $$ = criar_no("ATRIBUICAO_VETOR", "");
         adicionar_filho($$, criar_no("ID", $1));
         adicionar_filho($$, $3);  // índice
         adicionar_filho($$, $6);  // valor
     }
-
+    | ID '=' STRING ';'  /* Atribuição direta de string */
+    {
+        $$ = criar_no("ATRIBUICAO_STRING", "");
+        adicionar_filho($$, criar_no("ID", $1));
+        adicionar_filho($$, criar_no("STRING", $3));
+    }
     ;
 
 expressao:
