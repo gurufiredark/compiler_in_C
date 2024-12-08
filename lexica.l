@@ -6,13 +6,14 @@
 int linha = 1;
 extern int erros_lexicos;
 
-
 #define YY_NO_INPUT
 #define YY_NO_UNPUT
 
 %}
 
 %x COMENTARIO_BLOCO
+%x STRING_INTERPOLACAO
+%x INSIDE_INTERPOLACAO
 
 %%
 [ \t]                    ;
@@ -36,16 +37,31 @@ extern int erros_lexicos;
 "while"                  { return WHILE; }
 "for"                    { return FOR; }
 "return"                 { return RETURN; }
+"print"                  { return PRINT; }
+"scan"                   { return SCAN; }
 
 "main"                   { return MAIN; }
 "include"                { return INCLUDE; }
 
-[0-9]+                   { printf("Número inteiro (INT) encontrado: %s\n", yytext); yylval.ival = atoi(yytext); return NUM_INT; }
+[0-9]+                   { yylval.ival = atoi(yytext); return NUM_INT; }
 [0-9]+"."[0-9]+         { yylval.fval = atof(yytext); return NUM_FLOAT; }
-\"[^\"]*\"              { yylval.sval = strdup(yytext); return STRING; }
 \'[^\']\'               { yylval.sval = strdup(yytext); return CHAR; }
 
-[a-zA-Z_][a-zA-Z0-9_]*  { printf("Identificador (ID) encontrado: %s\n", yytext); yylval.sval = strdup(yytext); return ID; }
+    /* String com interpolação (começa com caractere $) */
+\"\$                     { BEGIN(STRING_INTERPOLACAO); yylval.sval = strdup(""); return STRING_START; }
+
+    /* String normal (não começa com $) */
+\"[^\"$][^\"]*\"        { yylval.sval = strdup(yytext); return STRING; }
+
+<STRING_INTERPOLACAO>\$\{ { BEGIN(INSIDE_INTERPOLACAO); return INTERPOLACAO_START; }
+<STRING_INTERPOLACAO>\"  { BEGIN(INITIAL); return STRING_END; }
+<STRING_INTERPOLACAO>[^\"\$]+  { yylval.sval = strdup(yytext); return STRING_TEXT; }
+<STRING_INTERPOLACAO>\$[^\{]  { yylval.sval = strdup(yytext); return STRING_TEXT; }
+
+<INSIDE_INTERPOLACAO>\}  { BEGIN(STRING_INTERPOLACAO); return INTERPOLACAO_END; }
+<INSIDE_INTERPOLACAO>[^}]+  { yylval.sval = strdup(yytext); return ID; }
+
+[a-zA-Z_][a-zA-Z0-9_]*  { yylval.sval = strdup(yytext); return ID; }
 
 "+"                      { return '+'; }
 "++"                     { return INC; }
