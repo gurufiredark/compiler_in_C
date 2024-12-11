@@ -13,6 +13,27 @@ typedef struct No {
     struct No** filhos;
 } No;
 
+typedef struct {
+    char* nome;        // Nome do identificador
+    char* tipo;        // Tipo do dado (int, float, char, etc)
+    char* categoria;   // Variável ou Função
+    int linha;         // Linha onde foi declarado
+} SimboloEntrada;
+
+typedef struct {
+    SimboloEntrada* entradas;
+    int quantidade;
+    int capacidade;
+} TabelaSimbolos;
+
+TabelaSimbolos* tabela;
+
+TabelaSimbolos* criar_tabela_simbolos();     
+void adicionar_simbolo(TabelaSimbolos* t, const char* nome, const char* tipo, const char* categoria, int linha);
+void imprimir_tabela(TabelaSimbolos* t);                
+void liberar_tabela(TabelaSimbolos* t);   
+
+
 No* criar_no(char* tipo, char* valor);
 void adicionar_filho(No* pai, No* filho);
 void imprimir_arvore(No* raiz, int nivel);
@@ -34,8 +55,6 @@ No* raiz = NULL;
     float fval;
     char* sval;
 }
-
-%token ERRO
 
 %token <sval> TIPO_INT TIPO_FLOAT TIPO_CHAR TIPO_STRING VOID
 %token <sval> IF ELSE WHILE FOR
@@ -130,6 +149,7 @@ declaracao_variavel:
     {
         $$ = criar_no("DECLARACAO_VAR", $2);
         adicionar_filho($$, $1);
+        adicionar_simbolo(tabela, $2, $1->valor, "variavel", linha);
     }
     | tipo ID '[' NUM_INT ']' ';'  /* vetor com tamanho específico */
     {
@@ -137,6 +157,7 @@ declaracao_variavel:
         sprintf(temp, "%s[%d]", $2, $4);
         $$ = criar_no("DECLARACAO_VETOR", temp);
         adicionar_filho($$, $1);
+        adicionar_simbolo(tabela, $2, $1->valor, "variavel", linha);
     }
     | tipo ID '[' ']' ';'  /* vetor sem tamanho específico */
     {
@@ -144,12 +165,14 @@ declaracao_variavel:
         sprintf(temp, "%s[]", $2);
         $$ = criar_no("DECLARACAO_VETOR", temp);
         adicionar_filho($$, $1);
+        adicionar_simbolo(tabela, $2, $1->valor, "variavel", linha);
     }
     | tipo ID '[' ']' '=' STRING ';'  /* string com inicialização sem tamanho explícito */
     {
         $$ = criar_no("DECLARACAO_STRING", $2);
         adicionar_filho($$, $1);
         adicionar_filho($$, criar_no("STRING", $6));
+        adicionar_simbolo(tabela, $2, $1->valor, "variavel", linha);
     }
     ;
 
@@ -183,12 +206,14 @@ declaracao_funcao:
         adicionar_filho($$, $1);
         adicionar_filho($$, $4);
         adicionar_filho($$, $6);
+        adicionar_simbolo(tabela, $2, $1->valor, "funcao", linha);
     }
     | tipo MAIN '(' ')' bloco
     {
         $$ = criar_no("FUNCAO", "main");
         adicionar_filho($$, $1);
         adicionar_filho($$, $5);
+        adicionar_simbolo(tabela, "main", $1->valor, "funcao", linha);
     }
     ;
 
@@ -558,6 +583,7 @@ expressao:
 
 %%
 
+//ARVORE
 No* criar_no(char* tipo, char* valor) {
     No* no = (No*)malloc(sizeof(No));
     if (no == NULL) {
@@ -622,6 +648,58 @@ void yyerror(const char* s) {
     fprintf(stderr, "Último token lido: %s\n", yytext);
     erros_sintaticos++;
 }
+
+//TABELA
+
+TabelaSimbolos* criar_tabela_simbolos() {
+    TabelaSimbolos* t = (TabelaSimbolos*)malloc(sizeof(TabelaSimbolos));
+    t->capacidade = 100;
+    t->quantidade = 0;
+    t->entradas = (SimboloEntrada*)malloc(sizeof(SimboloEntrada) * t->capacidade);
+    return t;
+}
+
+void adicionar_simbolo(TabelaSimbolos* t, const char* nome, const char* tipo, const char* categoria, int linha) {
+    if(t->quantidade >= t->capacidade) {
+        t->capacidade *= 2;
+        t->entradas = (SimboloEntrada*)realloc(t->entradas, sizeof(SimboloEntrada) * t->capacidade);
+    }
+
+    SimboloEntrada* novo = &t->entradas[t->quantidade];
+    novo->nome = strdup(nome);
+    novo->tipo = strdup(tipo);
+    novo->categoria = strdup(categoria);
+    novo->linha = linha;
+    t->quantidade++;
+}
+
+void imprimir_tabela(TabelaSimbolos* t) {
+    printf("\n=== Tabela de Símbolos ===\n");
+    printf("%-15s %-10s %-12s %-8s\n", 
+           "Nome", "Tipo", "Categoria", "Linha");
+    printf("----------------------------------------\n");
+    
+    for(int i = 0; i < t->quantidade; i++) {
+        printf("%-15s %-10s %-12s %-8d\n",
+               t->entradas[i].nome,
+               t->entradas[i].tipo,
+               t->entradas[i].categoria,
+               t->entradas[i].linha);
+    }
+    printf("\n");
+}
+
+void liberar_tabela(TabelaSimbolos* t) {
+    for(int i = 0; i < t->quantidade; i++) {
+        free(t->entradas[i].nome);
+        free(t->entradas[i].tipo);
+        free(t->entradas[i].categoria);
+    }
+    free(t->entradas);
+    free(t);
+}
+
+//MAIN
 int main(int argc, char** argv) {
     if (argc != 2) {
         printf("Uso: %s arquivo.txt\n", argv[0]);
@@ -636,8 +714,11 @@ int main(int argc, char** argv) {
 
     yyin = arquivo;
     
+    // Cria a tabela de símbolos
+    tabela = criar_tabela_simbolos();
+    
     printf("\n=== Iniciando análise ===\n");
-    yyparse();  // removemos a variável resultado não utilizada
+    yyparse();
     
     printf("\n=== Resumo da análise ===\n");
     if (erros_lexicos > 0) {
@@ -654,13 +735,13 @@ int main(int argc, char** argv) {
         printf("\nÁrvore Sintática:\n");
         if (raiz != NULL) {
             imprimir_arvore(raiz, 0);
-        } else {
-            printf("ERRO: Raiz da árvore é NULL!\n");
         }
-    } else {
-        printf("\nA análise encontrou erros. Corrija-os e tente novamente.\n");
+        // Imprime a tabela de símbolos
+        imprimir_tabela(tabela);
     }
     
+    // Libera memória
+    liberar_tabela(tabela);
     liberar_arvore(raiz);
     fclose(arquivo);
     return (erros_lexicos + erros_sintaticos) > 0 ? 1 : 0;
