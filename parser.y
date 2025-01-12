@@ -49,6 +49,17 @@ void adicionar_filho(No* pai, No* filho);
 void imprimir_arvore(No* raiz, int nivel);
 void liberar_arvore(No* raiz);
 
+//funções semânticas
+void erro_semantico(const char* msg, int linha);
+void verificar_declaracao_duplicada(TabelaSimbolos* tabela, const char* nome, int linha);
+bool verificar_variavel_declarada(TabelaSimbolos* tabela, const char* nome);
+void verificar_tipo_operacao(No* no);
+bool verificar_compatibilidade_tipos(const char* tipo1, const char* tipo2);
+bool is_tipo_numerico(const char* tipo);
+const char* inferir_tipo_expressao(No* expressao);
+void verificar_acesso_vetor(No* no);
+void iniciar_analise_semantica(No* raiz);
+
 extern int linha;
 extern char* yytext;
 extern FILE* yyin;
@@ -157,6 +168,7 @@ declaracao:
 declaracao_variavel:
     tipo ID ';'
     {
+        verificar_declaracao_duplicada(tabela, $2, linha);
         $$ = criar_no("DECLARACAO_VAR", $2);
         adicionar_filho($$, $1);
         adicionar_simbolo(tabela, $2, $1->valor, "variavel", linha);
@@ -434,9 +446,15 @@ atribuicao_for:
 atribuicao:
     ID '=' expressao ';'
     {
+        if (!verificar_variavel_declarada(tabela, $1)) {
+            char msg[100];
+            sprintf(msg, "Variável '%s' não foi declarada", $1);
+            erro_semantico(msg, linha);
+        }
         $$ = criar_no("ATRIBUICAO", "");
         adicionar_filho($$, criar_no("ID", $1));
         adicionar_filho($$, $3);
+        verificar_tipo_operacao($$);
     }
     | ID '[' expressao ']' '=' expressao ';'  /* Atribuição em posição específica do vetor */
     {
@@ -829,10 +847,30 @@ void verificar_acesso_vetor(No* no) {
     }
 }
 
+void analisar_no(No* no) {
+    if (!no) return;
+
+    // Verifica o tipo do nó e faz as análises apropriadas
+    if (strcmp(no->tipo, "OPERADOR") == 0) {
+        verificar_tipo_operacao(no);
+    }
+    else if (strcmp(no->tipo, "ACESSO_VETOR") == 0) {
+        verificar_acesso_vetor(no);
+    }
+    
+    // Continua a análise nos filhos
+    for (int i = 0; i < no->num_filhos; i++) {
+        analisar_no(no->filhos[i]);
+    }
+}
+
 void iniciar_analise_semantica(No* raiz) {
     if (!raiz) return;
     
     criar_escopo();
+    
+    // Percorre a árvore fazendo as verificações
+    analisar_no(raiz);
     
     // Verifica funções básicas necessárias (main)
     if (!verificar_variavel_declarada(escopo_atual->tabela, "main")) {
@@ -861,7 +899,15 @@ int main(int argc, char** argv) {
     tabela = criar_tabela_simbolos();
     
     printf("\n=== Iniciando análise ===\n");
+    
+    // Faz a análise léxica e sintática
     yyparse();
+    
+    // Se não houver erros léxicos ou sintáticos, faz a análise semântica
+    if (erros_lexicos == 0 && erros_sintaticos == 0) {
+        printf("\n=== Iniciando análise semântica ===\n");
+        iniciar_analise_semantica(raiz);
+    }
     
     printf("\n=== Resumo da análise ===\n");
     if (erros_lexicos > 0) {
@@ -874,6 +920,7 @@ int main(int argc, char** argv) {
     }
     if (erros_semanticos > 0) {
         printf("Total de erros semânticos: %d\n", erros_semanticos);
+        printf("O código contém erros de tipos ou uso indevido de variáveis.\n");
     }
     
     if (erros_lexicos == 0 && erros_sintaticos == 0 && erros_semanticos == 0) {
@@ -890,5 +937,7 @@ int main(int argc, char** argv) {
     liberar_tabela(tabela);
     liberar_arvore(raiz);
     fclose(arquivo);
+    
+    // Retorna 1 se houver qualquer tipo de erro, 0 caso contrário
     return (erros_lexicos + erros_sintaticos + erros_semanticos) > 0 ? 1 : 0;
 }

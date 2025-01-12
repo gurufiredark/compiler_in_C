@@ -1,32 +1,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <Math.h>
+
 int main() {
-    int x;
+    int x;       
+    int x;       // Erro 1: Declaração duplicada de 'x'
     char c;
     c = 't';
+    
+    y = 20;      // Erro 2: Variável 'y' não declarada
+    
+    c = x + 5;   // Erro 3: Tentativa de atribuir int para char
+    
+    if (c > 5) { // Erro 4: Comparação entre char e int
+        x = x + 1;
+    }
+
     char str[];
     str = "teste";
-    x = 10;
-    if (x > 5) {
-        x = x + 1;
-    } else {
-        x = x - 1;
-    }
-    for (int i = 0; i < 10; i++) {
+    x = str;     // Erro 5: Incompatibilidade de tipos (string para int)
+
+    for (int i = 0; i < "texto"; i++) {  // Erro 6: Comparação entre int e string
         x = x + 1;
     }
 
-    scan(x);
-    print("valor de x: ${x}");
-    print(x);
+    scan(z);     // Erro 7: Tentativa de ler variável não declarada
 
-    while (x == 10) {
+    while (x == "10") {  // Erro 8: Comparação entre int e string
         x = x - 1;
     }
     return x;
 }
 
 int soma(int a, int b) {
-    return a + b;
+    return "teste";  // Erro 9: Retorno de string em função que deveria retornar int
 }
