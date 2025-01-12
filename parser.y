@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h> 
 
 extern int erros_lexicos;
 int erros_sintaticos = 0;
@@ -25,6 +26,15 @@ typedef struct {
     int quantidade;
     int capacidade;
 } TabelaSimbolos;
+
+typedef struct Escopo {
+    TabelaSimbolos* tabela;
+    struct Escopo* pai;
+} Escopo;
+
+// Variáveis globais
+int erros_semanticos = 0;
+Escopo* escopo_atual = NULL;
 
 TabelaSimbolos* tabela;
 
@@ -699,6 +709,139 @@ void liberar_tabela(TabelaSimbolos* t) {
     free(t);
 }
 
+// Funções da análise semântica
+void erro_semantico(const char* msg, int linha) {
+    fprintf(stderr, "Erro semântico na linha %d: %s\n", linha, msg);
+    erros_semanticos++;
+}
+
+// Funções de escopo
+Escopo* criar_escopo() {
+    Escopo* novo = (Escopo*)malloc(sizeof(Escopo));
+    novo->tabela = criar_tabela_simbolos();
+    novo->pai = escopo_atual;
+    escopo_atual = novo;
+    return novo;
+}
+
+void liberar_escopo() {
+    if (escopo_atual) {
+        Escopo* temp = escopo_atual;
+        escopo_atual = escopo_atual->pai;
+        liberar_tabela(temp->tabela);
+        free(temp);
+    }
+}
+
+// Verificações semânticas principais
+void verificar_declaracao_duplicada(TabelaSimbolos* tabela, const char* nome, int linha) {
+    for (int i = 0; i < tabela->quantidade; i++) {
+        if (strcmp(tabela->entradas[i].nome, nome) == 0) {
+            char msg[100];
+            sprintf(msg, "Identificador '%s' já declarado", nome);
+            erro_semantico(msg, linha);
+            return;
+        }
+    }
+}
+
+bool verificar_variavel_declarada(TabelaSimbolos* tabela, const char* nome) {
+    Escopo* atual = escopo_atual;
+    while (atual) {
+        for (int i = 0; i < atual->tabela->quantidade; i++) {
+            if (strcmp(atual->tabela->entradas[i].nome, nome) == 0) {
+                return true;
+            }
+        }
+        atual = atual->pai;
+    }
+    return false;
+}
+
+bool verificar_compatibilidade_tipos(const char* tipo1, const char* tipo2) {
+    if (strcmp(tipo1, tipo2) == 0) return true;
+    if (strcmp(tipo1, "float") == 0 && strcmp(tipo2, "int") == 0) return true;
+    return false;
+}
+
+bool is_tipo_numerico(const char* tipo) {
+    return (strcmp(tipo, "int") == 0 || strcmp(tipo, "float") == 0);
+}
+
+const char* inferir_tipo_expressao(No* expressao) {
+    if (!expressao) return NULL;
+
+    if (strcmp(expressao->tipo, "NUM_INT") == 0) return "int";
+    if (strcmp(expressao->tipo, "NUM_FLOAT") == 0) return "float";
+    if (strcmp(expressao->tipo, "CHAR") == 0) return "char";
+    if (strcmp(expressao->tipo, "STRING") == 0) return "string";
+    
+    if (strcmp(expressao->tipo, "ID") == 0) {
+        Escopo* atual = escopo_atual;
+        while (atual) {
+            for (int i = 0; i < atual->tabela->quantidade; i++) {
+                if (strcmp(atual->tabela->entradas[i].nome, expressao->valor) == 0) {
+                    return atual->tabela->entradas[i].tipo;
+                }
+            }
+            atual = atual->pai;
+        }
+    }
+    return NULL;
+}
+
+void verificar_tipo_operacao(No* no) {
+    if (!no || !no->tipo) return;
+
+    if (strcmp(no->tipo, "OPERADOR") == 0) {
+        const char* tipo_esq = inferir_tipo_expressao(no->filhos[0]);
+        const char* tipo_dir = inferir_tipo_expressao(no->filhos[1]);
+
+        if (strcmp(no->valor, "+") == 0 || 
+            strcmp(no->valor, "-") == 0 || 
+            strcmp(no->valor, "*") == 0 || 
+            strcmp(no->valor, "/") == 0) {
+            if (!is_tipo_numerico(tipo_esq) || !is_tipo_numerico(tipo_dir)) {
+                erro_semantico("Operação aritmética requer tipos numéricos", linha);
+            }
+        }
+        else if (strcmp(no->valor, ">") == 0 || 
+                 strcmp(no->valor, "<") == 0 || 
+                 strcmp(no->valor, ">=") == 0 || 
+                 strcmp(no->valor, "<=") == 0) {
+            if (!is_tipo_numerico(tipo_esq) || !is_tipo_numerico(tipo_dir)) {
+                erro_semantico("Comparação requer tipos numéricos", linha);
+            }
+        }
+        else if (strcmp(no->valor, "==") == 0 || strcmp(no->valor, "!=") == 0) {
+            if (!verificar_compatibilidade_tipos(tipo_esq, tipo_dir)) {
+                erro_semantico("Comparação entre tipos incompatíveis", linha);
+            }
+        }
+    }
+}
+
+void verificar_acesso_vetor(No* no) {
+    if (!no || strcmp(no->tipo, "ACESSO_VETOR") != 0) return;
+    const char* tipo_indice = inferir_tipo_expressao(no->filhos[0]);
+    if (strcmp(tipo_indice, "int") != 0) {
+        erro_semantico("Índice de vetor deve ser do tipo inteiro", linha);
+    }
+}
+
+void iniciar_analise_semantica(No* raiz) {
+    if (!raiz) return;
+    
+    criar_escopo();
+    
+    // Verifica funções básicas necessárias (main)
+    if (!verificar_variavel_declarada(escopo_atual->tabela, "main")) {
+        erro_semantico("Função 'main' não declarada", 0);
+    }
+    
+    liberar_escopo();
+}
+
 //MAIN
 int main(int argc, char** argv) {
     if (argc != 2) {
@@ -729,8 +872,11 @@ int main(int argc, char** argv) {
         printf("Total de erros sintáticos: %d\n", erros_sintaticos);
         printf("O código contém estruturas sintáticas inválidas.\n");
     }
+    if (erros_semanticos > 0) {
+        printf("Total de erros semânticos: %d\n", erros_semanticos);
+    }
     
-    if (erros_lexicos == 0 && erros_sintaticos == 0) {
+    if (erros_lexicos == 0 && erros_sintaticos == 0 && erros_semanticos == 0) {
         printf("\nCódigo analisado com sucesso!\n");
         printf("\nÁrvore Sintática:\n");
         if (raiz != NULL) {
@@ -744,5 +890,5 @@ int main(int argc, char** argv) {
     liberar_tabela(tabela);
     liberar_arvore(raiz);
     fclose(arquivo);
-    return (erros_lexicos + erros_sintaticos) > 0 ? 1 : 0;
+    return (erros_lexicos + erros_sintaticos + erros_semanticos) > 0 ? 1 : 0;
 }
