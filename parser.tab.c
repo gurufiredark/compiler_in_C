@@ -81,6 +81,8 @@ typedef struct No {
     char* tipo;
     char* valor;
     int num_filhos;
+    int linha;
+    struct No* pai;
     struct No** filhos;
 } No;
 
@@ -139,7 +141,7 @@ int yylex();
 No* raiz = NULL;
 
 
-#line 143 "parser.tab.c"
+#line 145 "parser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -236,17 +238,18 @@ enum yysymbol_kind_t
   YYSYMBOL_bloco = 66,                     /* bloco  */
   YYSYMBOL_comandos = 67,                  /* comandos  */
   YYSYMBOL_comando = 68,                   /* comando  */
-  YYSYMBOL_comando_print = 69,             /* comando_print  */
-  YYSYMBOL_string_interpolada = 70,        /* string_interpolada  */
-  YYSYMBOL_partes_string = 71,             /* partes_string  */
-  YYSYMBOL_parte_string = 72,              /* parte_string  */
-  YYSYMBOL_comando_scan = 73,              /* comando_scan  */
-  YYSYMBOL_comando_if = 74,                /* comando_if  */
-  YYSYMBOL_comando_while = 75,             /* comando_while  */
-  YYSYMBOL_comando_for = 76,               /* comando_for  */
-  YYSYMBOL_atribuicao_for = 77,            /* atribuicao_for  */
-  YYSYMBOL_atribuicao = 78,                /* atribuicao  */
-  YYSYMBOL_expressao = 79                  /* expressao  */
+  YYSYMBOL_return_stmt = 69,               /* return_stmt  */
+  YYSYMBOL_comando_print = 70,             /* comando_print  */
+  YYSYMBOL_string_interpolada = 71,        /* string_interpolada  */
+  YYSYMBOL_partes_string = 72,             /* partes_string  */
+  YYSYMBOL_parte_string = 73,              /* parte_string  */
+  YYSYMBOL_comando_scan = 74,              /* comando_scan  */
+  YYSYMBOL_comando_if = 75,                /* comando_if  */
+  YYSYMBOL_comando_while = 76,             /* comando_while  */
+  YYSYMBOL_comando_for = 77,               /* comando_for  */
+  YYSYMBOL_atribuicao_for = 78,            /* atribuicao_for  */
+  YYSYMBOL_atribuicao = 79,                /* atribuicao  */
+  YYSYMBOL_expressao = 80                  /* expressao  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -574,16 +577,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  3
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   484
+#define YYLAST   489
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  54
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  26
+#define YYNNTS  27
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  83
+#define YYNRULES  84
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  190
+#define YYNSTATES  191
 
 /* YYMAXUTOK -- Last valid token kind.  */
 #define YYMAXUTOK   292
@@ -636,15 +639,15 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   114,   114,   125,   128,   136,   145,   150,   158,   162,
-     169,   176,   184,   192,   202,   206,   210,   214,   218,   225,
-     233,   244,   247,   255,   260,   268,   276,   285,   288,   294,
-     303,   304,   305,   306,   307,   308,   309,   317,   322,   327,
-     334,   341,   346,   354,   362,   367,   375,   379,   387,   392,
-     401,   407,   417,   426,   437,   443,   447,   459,   466,   475,
-     481,   487,   491,   495,   499,   504,   510,   516,   522,   528,
-     534,   540,   544,   549,   555,   561,   567,   573,   579,   585,
-     590,   595,   600,   605
+       0,   117,   117,   128,   131,   139,   148,   153,   161,   165,
+     172,   178,   186,   194,   204,   208,   212,   216,   220,   227,
+     235,   246,   249,   257,   262,   270,   278,   287,   290,   296,
+     305,   306,   307,   308,   309,   310,   311,   315,   323,   328,
+     333,   340,   347,   352,   360,   368,   373,   381,   385,   393,
+     398,   407,   413,   423,   433,   444,   450,   454,   460,   467,
+     476,   482,   488,   492,   496,   500,   505,   511,   517,   523,
+     529,   535,   541,   545,   550,   556,   562,   568,   574,   580,
+     586,   591,   596,   601,   606
 };
 #endif
 
@@ -671,9 +674,9 @@ static const char *const yytname[] =
   "programa", "includes", "include_stmt", "declaracoes", "declaracao",
   "declaracao_variavel", "tipo", "declaracao_funcao", "parametros",
   "lista_parametros", "parametro", "bloco", "comandos", "comando",
-  "comando_print", "string_interpolada", "partes_string", "parte_string",
-  "comando_scan", "comando_if", "comando_while", "comando_for",
-  "atribuicao_for", "atribuicao", "expressao", YY_NULLPTR
+  "return_stmt", "comando_print", "string_interpolada", "partes_string",
+  "parte_string", "comando_scan", "comando_if", "comando_while",
+  "comando_for", "atribuicao_for", "atribuicao", "expressao", YY_NULLPTR
 };
 
 static const char *
@@ -683,7 +686,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-65)
+#define YYPACT_NINF (-66)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -697,25 +700,26 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-     -65,    27,    16,   -65,   -65,   -65,   -65,   -65,   -65,    37,
-     -65,   -65,   247,   -65,    40,   -65,    28,   -65,    11,   -41,
-      43,    32,   247,   -65,    -1,    31,    30,    66,    47,   -65,
-      39,    46,    -5,    72,   449,   -65,   -65,    30,   247,    49,
-      76,   -65,    82,    67,    69,    70,   134,    81,    95,   -34,
-     449,    89,    73,   449,   -65,   -65,   -65,   -65,   -65,   -65,
-     -65,   -65,   -65,    93,   -65,   134,   134,    53,   -65,   -65,
-     -65,   -65,    94,   134,   134,   134,   134,   134,   163,   103,
-     121,   140,   134,   -65,   -43,   -65,   -65,   -65,   271,   295,
-     111,   123,   114,   134,     0,     0,     0,     0,   319,   134,
-     134,   134,   134,   134,   134,   134,   134,   -65,   -65,   134,
-     134,   134,   134,   -65,   118,   122,   124,   128,   130,    45,
-     131,   -19,   120,   190,    44,    30,    30,   134,   139,   134,
-      77,   -65,   442,   442,   167,   167,   167,   167,   409,   388,
-     192,   192,     0,     0,   133,   135,   145,   148,   149,   -65,
-     158,   166,    45,   153,   162,   134,   -65,   -65,   144,   211,
-     -65,   367,   134,   217,   -65,   -65,   -65,   -65,   -65,   -65,
-     188,   -65,   -65,   -65,   -65,   106,   134,    30,   367,   134,
-     -65,   181,   244,   -65,   343,   179,   -65,    30,   -65,   -65
+     -66,    27,    16,   -66,   -66,   -66,   -66,   -66,   -66,    30,
+     -66,   -66,   198,   -66,    46,   -66,    40,   -66,    22,   -41,
+      66,    43,   198,   -66,    -1,    47,    41,    74,    62,   -66,
+      59,    61,    -5,    99,   454,   -66,   -66,    41,   198,    78,
+     117,   -66,   100,    98,   109,   110,   140,   111,   123,   -34,
+     454,   122,    91,   454,   -66,   -66,   -66,   -66,   -66,   -66,
+     -66,   -66,   -66,   -66,   104,   -66,   140,   140,    71,   -66,
+     -66,   -66,   -66,   119,   140,   140,   140,   140,   140,   168,
+      64,   148,   145,   140,   -66,   -43,   -66,   -66,   -66,   276,
+     300,   135,   153,   130,   140,     0,     0,     0,     0,   324,
+     140,   140,   140,   140,   140,   140,   140,   140,   -66,   -66,
+     140,   140,   140,   140,   -66,   134,   136,   137,   138,   141,
+      37,   142,   -19,   150,   195,    29,    41,    41,   140,   173,
+     140,    77,   -66,   447,   447,    82,    82,    82,    82,   414,
+     393,   108,   108,     0,     0,   158,   164,   165,   166,   167,
+     -66,   204,   154,    37,   180,   181,   140,   -66,   -66,   192,
+     223,   -66,   372,   140,   222,   -66,   -66,   -66,   -66,   -66,
+     -66,   194,   -66,   -66,   -66,   -66,   106,   140,    41,   372,
+     140,   -66,   188,   249,   -66,   348,   190,   -66,    41,   -66,
+     -66
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -728,36 +732,37 @@ static const yytype_int8 yydefact[] =
        0,     0,    21,    10,     0,     0,     0,     0,     0,    22,
       23,     0,     0,     0,    27,    20,    25,     0,     0,     0,
        0,    12,     0,     0,     0,     0,     0,     0,     0,     0,
-      27,     0,     0,    27,    34,    35,    31,    32,    33,    30,
-      19,    24,    11,     0,     5,     0,     0,     0,    59,    60,
-      62,    63,    61,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,    29,     0,    26,    28,    13,     0,     0,
-       0,     0,     0,     0,    79,    80,    81,    72,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,    82,    83,     0,
-       0,     0,     0,    36,     0,     0,     0,     0,     0,     0,
-       0,     0,    62,     0,     0,     0,     0,     0,     0,     0,
-       0,    71,    73,    74,    70,    69,    75,    76,    77,    78,
-      65,    66,    67,    68,     0,     0,     0,     0,     0,    46,
-       0,     0,    44,     0,     0,     0,    58,    56,     0,    50,
-      52,    54,     0,     0,    64,    39,    40,    41,    42,    38,
-       0,    43,    45,    37,    48,     0,     0,     0,    55,     0,
-      47,     0,     0,    51,     0,     0,    57,     0,    49,    53
+      27,     0,     0,    27,    36,    34,    35,    31,    32,    33,
+      30,    19,    24,    11,     0,     5,     0,     0,     0,    60,
+      61,    63,    64,    62,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,    29,     0,    26,    28,    13,     0,
+       0,     0,     0,     0,     0,    80,    81,    82,    73,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,    83,    84,
+       0,     0,     0,     0,    37,     0,     0,     0,     0,     0,
+       0,     0,     0,    63,     0,     0,     0,     0,     0,     0,
+       0,     0,    72,    74,    75,    71,    70,    76,    77,    78,
+      79,    66,    67,    68,    69,     0,     0,     0,     0,     0,
+      47,     0,     0,    45,     0,     0,     0,    59,    57,     0,
+      51,    53,    55,     0,     0,    65,    40,    41,    42,    43,
+      39,     0,    44,    46,    38,    49,     0,     0,     0,    56,
+       0,    48,     0,     0,    52,     0,     0,    58,     0,    50,
+      54
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-     -65,   -65,   -65,   -65,   216,   -65,    42,    12,   -65,   -65,
-     197,   -65,   -37,   -25,   -65,   -65,   -65,    84,   -65,   -65,
-     -65,   -65,   -65,   -65,   -65,   -64
+     -66,   -66,   -66,   -66,   227,   -66,    84,    12,   -66,   -66,
+     202,   -66,   -37,   -25,   -66,   -66,   -66,   -66,    88,   -66,
+     -66,   -66,   -66,   -66,   -66,   -66,   -65
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_uint8 yydefgoto[] =
 {
        0,     1,     2,    10,    11,    12,    50,    51,    15,    28,
-      29,    30,    35,    52,    53,    54,   120,   151,   152,    55,
-      56,    57,    58,    92,    59,    78
+      29,    30,    35,    52,    53,    54,    55,   121,   152,   153,
+      56,    57,    58,    59,    93,    60,    79
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -765,108 +770,108 @@ static const yytype_uint8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_uint8 yytable[] =
 {
-      60,    88,    89,    22,    81,    23,    24,    23,    24,    94,
-      95,    96,    97,    98,    14,    82,    31,   123,   124,     4,
-       5,     6,     7,     8,    14,    83,   154,     3,    86,   130,
-     155,   107,   108,    40,    27,   132,   133,   134,   135,   136,
-     137,   138,   139,    41,    13,   140,   141,   142,   143,    32,
-      27,    16,    20,    18,    13,    21,     4,     5,     6,     7,
-       8,    19,     9,   161,    25,   163,    99,   100,   101,   102,
-     103,   104,   105,   106,    90,   107,   108,    26,    33,    91,
-     149,   150,    34,   109,   110,   111,   112,    36,   159,   160,
-      38,   175,    37,    42,   158,    63,    39,    62,   178,    99,
-     100,   101,   102,   103,   104,   105,   106,    64,   107,   108,
-      84,    65,   182,    66,    67,   184,   109,   110,   111,   112,
-     114,   115,   116,   117,   118,    79,    85,   164,    99,   100,
-     101,   102,   103,   104,   105,   106,   119,   107,   108,    80,
-     183,    87,   121,    93,   128,   109,   110,   111,   112,   127,
-     189,    68,    69,    70,    71,    72,   181,    68,    69,   122,
-      71,    72,   129,   144,    73,    74,    75,   145,   156,   146,
-      73,    74,    75,   147,    76,   148,   153,   162,    77,   170,
-      76,   165,   176,   166,    77,    99,   100,   101,   102,   103,
-     104,   105,   106,   167,   107,   108,   168,   169,   107,   108,
-     171,   173,   109,   110,   111,   112,   109,   110,   111,   112,
-     174,   113,    99,   100,   101,   102,   103,   104,   105,   106,
-     177,   107,   108,   107,   108,   180,   185,   188,    17,   109,
-     110,   111,   112,   111,   112,    61,   172,     0,   157,    99,
-     100,   101,   102,   103,   104,   105,   106,     0,   107,   108,
-       4,     5,     6,     7,     8,     0,   109,   110,   111,   112,
-       0,     0,     0,     0,     0,   179,    99,   100,   101,   102,
-     103,   104,   105,   106,     0,   107,   108,     0,     0,     0,
-       0,     0,     0,   109,   110,   111,   112,     0,     0,     0,
-       0,     0,   186,    99,   100,   101,   102,   103,   104,   105,
-     106,     0,   107,   108,     0,     0,     0,     0,     0,     0,
-     109,   110,   111,   112,     0,     0,   125,    99,   100,   101,
-     102,   103,   104,   105,   106,     0,   107,   108,     0,     0,
-       0,     0,     0,     0,   109,   110,   111,   112,     0,     0,
-     126,    99,   100,   101,   102,   103,   104,   105,   106,     0,
-     107,   108,     0,     0,     0,     0,     0,     0,   109,   110,
-     111,   112,     0,     0,   131,    99,   100,   101,   102,   103,
-     104,   105,   106,     0,   107,   108,     0,     0,     0,     0,
-       0,     0,   109,   110,   111,   112,     0,     0,   187,    99,
-     100,   101,   102,   103,   104,   105,   106,     0,   107,   108,
-       0,     0,     0,     0,     0,     0,   109,   110,   111,   112,
-      99,   100,   101,   102,   103,   104,   105,     0,     0,   107,
-     108,     0,     0,     0,     0,     0,     0,   109,   110,   111,
-     112,    99,   100,   101,   102,   103,   104,     0,     0,     0,
-     107,   108,     0,     0,     0,     0,     0,     0,   109,   110,
-     111,   112,     4,     5,     6,     7,     8,    43,     0,    44,
-      45,    46,     0,     0,    47,    48,   101,   102,   103,   104,
-      49,     0,     0,   107,   108,     0,     0,     0,     0,     0,
-       0,   109,   110,   111,   112
+      61,    89,    90,    22,    82,    23,    24,    23,    24,    95,
+      96,    97,    98,    99,    14,    83,    31,   124,   125,     4,
+       5,     6,     7,     8,    14,    84,   155,     3,    87,   131,
+     156,   108,   109,    40,    27,   133,   134,   135,   136,   137,
+     138,   139,   140,    41,    16,   141,   142,   143,   144,    32,
+      27,   100,   101,   102,   103,   104,   105,   106,   107,    18,
+     108,   109,     9,   162,    20,   164,    21,    19,   110,   111,
+     112,   113,   150,   151,     4,     5,     6,     7,     8,   159,
+      92,   115,   116,   117,   118,   119,    13,    25,    26,   160,
+     161,   176,    91,    34,    33,    36,    13,   120,   179,   100,
+     101,   102,   103,   104,   105,   106,   107,    37,   108,   109,
+      38,    39,   183,   108,   109,   185,   110,   111,   112,   113,
+      42,   110,   111,   112,   113,    65,    63,   165,   100,   101,
+     102,   103,   104,   105,   106,   107,    64,   108,   109,   108,
+     109,   184,    66,    85,    86,   110,   111,   112,   113,   112,
+     113,   190,    88,    67,    68,    80,   182,    69,    70,    71,
+      72,    73,    69,    70,   123,    72,    73,    81,    94,   122,
+      74,    75,    76,   128,   129,    74,    75,    76,   130,   145,
+      77,   146,   147,   148,    78,    77,   149,   154,   172,    78,
+     100,   101,   102,   103,   104,   105,   106,   107,   157,   108,
+     109,     4,     5,     6,     7,     8,   166,   110,   111,   112,
+     113,   163,   167,   168,   169,   170,   114,   100,   101,   102,
+     103,   104,   105,   106,   107,   171,   108,   109,   174,   175,
+     177,   181,   178,   186,   110,   111,   112,   113,   189,    17,
+      62,   173,     0,   158,   100,   101,   102,   103,   104,   105,
+     106,   107,     0,   108,   109,     0,     0,     0,     0,     0,
+       0,   110,   111,   112,   113,     0,     0,     0,     0,     0,
+     180,   100,   101,   102,   103,   104,   105,   106,   107,     0,
+     108,   109,     0,     0,     0,     0,     0,     0,   110,   111,
+     112,   113,     0,     0,     0,     0,     0,   187,   100,   101,
+     102,   103,   104,   105,   106,   107,     0,   108,   109,     0,
+       0,     0,     0,     0,     0,   110,   111,   112,   113,     0,
+       0,   126,   100,   101,   102,   103,   104,   105,   106,   107,
+       0,   108,   109,     0,     0,     0,     0,     0,     0,   110,
+     111,   112,   113,     0,     0,   127,   100,   101,   102,   103,
+     104,   105,   106,   107,     0,   108,   109,     0,     0,     0,
+       0,     0,     0,   110,   111,   112,   113,     0,     0,   132,
+     100,   101,   102,   103,   104,   105,   106,   107,     0,   108,
+     109,     0,     0,     0,     0,     0,     0,   110,   111,   112,
+     113,     0,     0,   188,   100,   101,   102,   103,   104,   105,
+     106,   107,     0,   108,   109,     0,     0,     0,     0,     0,
+       0,   110,   111,   112,   113,   100,   101,   102,   103,   104,
+     105,   106,     0,     0,   108,   109,     0,     0,     0,     0,
+       0,     0,   110,   111,   112,   113,   100,   101,   102,   103,
+     104,   105,     0,     0,     0,   108,   109,     0,     0,     0,
+       0,     0,     0,   110,   111,   112,   113,     4,     5,     6,
+       7,     8,    43,     0,    44,    45,    46,     0,     0,    47,
+      48,   102,   103,   104,   105,    49,     0,     0,   108,   109,
+       0,     0,     0,     0,     0,     0,   110,   111,   112,   113
 };
 
 static const yytype_int16 yycheck[] =
 {
-      37,    65,    66,    44,    38,    48,    49,    48,    49,    73,
-      74,    75,    76,    77,     2,    49,    17,    81,    82,     3,
-       4,     5,     6,     7,    12,    50,    45,     0,    53,    93,
-      49,    31,    32,    38,    22,    99,   100,   101,   102,   103,
-     104,   105,   106,    48,     2,   109,   110,   111,   112,    50,
-      38,    14,    24,    13,    12,    44,     3,     4,     5,     6,
-       7,    21,    46,   127,    21,   129,    22,    23,    24,    25,
-      26,    27,    28,    29,    21,    31,    32,    45,    47,    67,
-      35,    36,    52,    39,    40,    41,    42,    21,   125,   126,
-      51,   155,    45,    21,    50,    19,    50,    48,   162,    22,
-      23,    24,    25,    26,    27,    28,    29,    25,    31,    32,
-      21,    44,   176,    44,    44,   179,    39,    40,    41,    42,
-      17,    18,    19,    20,    21,    44,    53,    50,    22,    23,
-      24,    25,    26,    27,    28,    29,    33,    31,    32,    44,
-     177,    48,    21,    49,    21,    39,    40,    41,    42,    38,
-     187,    17,    18,    19,    20,    21,    50,    17,    18,    19,
-      20,    21,    48,    45,    30,    31,    32,    45,    48,    45,
-      30,    31,    32,    45,    40,    45,    45,    38,    44,    21,
-      40,    48,    38,    48,    44,    22,    23,    24,    25,    26,
-      27,    28,    29,    48,    31,    32,    48,    48,    31,    32,
-      34,    48,    39,    40,    41,    42,    39,    40,    41,    42,
-      48,    48,    22,    23,    24,    25,    26,    27,    28,    29,
-       9,    31,    32,    31,    32,    37,    45,    48,    12,    39,
-      40,    41,    42,    41,    42,    38,   152,    -1,    48,    22,
-      23,    24,    25,    26,    27,    28,    29,    -1,    31,    32,
-       3,     4,     5,     6,     7,    -1,    39,    40,    41,    42,
-      -1,    -1,    -1,    -1,    -1,    48,    22,    23,    24,    25,
+      37,    66,    67,    44,    38,    48,    49,    48,    49,    74,
+      75,    76,    77,    78,     2,    49,    17,    82,    83,     3,
+       4,     5,     6,     7,    12,    50,    45,     0,    53,    94,
+      49,    31,    32,    38,    22,   100,   101,   102,   103,   104,
+     105,   106,   107,    48,    14,   110,   111,   112,   113,    50,
+      38,    22,    23,    24,    25,    26,    27,    28,    29,    13,
+      31,    32,    46,   128,    24,   130,    44,    21,    39,    40,
+      41,    42,    35,    36,     3,     4,     5,     6,     7,    50,
+      68,    17,    18,    19,    20,    21,     2,    21,    45,   126,
+     127,   156,    21,    52,    47,    21,    12,    33,   163,    22,
+      23,    24,    25,    26,    27,    28,    29,    45,    31,    32,
+      51,    50,   177,    31,    32,   180,    39,    40,    41,    42,
+      21,    39,    40,    41,    42,    25,    48,    50,    22,    23,
+      24,    25,    26,    27,    28,    29,    19,    31,    32,    31,
+      32,   178,    44,    21,    53,    39,    40,    41,    42,    41,
+      42,   188,    48,    44,    44,    44,    50,    17,    18,    19,
+      20,    21,    17,    18,    19,    20,    21,    44,    49,    21,
+      30,    31,    32,    38,    21,    30,    31,    32,    48,    45,
+      40,    45,    45,    45,    44,    40,    45,    45,    34,    44,
+      22,    23,    24,    25,    26,    27,    28,    29,    48,    31,
+      32,     3,     4,     5,     6,     7,    48,    39,    40,    41,
+      42,    38,    48,    48,    48,    48,    48,    22,    23,    24,
+      25,    26,    27,    28,    29,    21,    31,    32,    48,    48,
+      38,    37,     9,    45,    39,    40,    41,    42,    48,    12,
+      38,   153,    -1,    48,    22,    23,    24,    25,    26,    27,
+      28,    29,    -1,    31,    32,    -1,    -1,    -1,    -1,    -1,
+      -1,    39,    40,    41,    42,    -1,    -1,    -1,    -1,    -1,
+      48,    22,    23,    24,    25,    26,    27,    28,    29,    -1,
+      31,    32,    -1,    -1,    -1,    -1,    -1,    -1,    39,    40,
+      41,    42,    -1,    -1,    -1,    -1,    -1,    48,    22,    23,
+      24,    25,    26,    27,    28,    29,    -1,    31,    32,    -1,
+      -1,    -1,    -1,    -1,    -1,    39,    40,    41,    42,    -1,
+      -1,    45,    22,    23,    24,    25,    26,    27,    28,    29,
+      -1,    31,    32,    -1,    -1,    -1,    -1,    -1,    -1,    39,
+      40,    41,    42,    -1,    -1,    45,    22,    23,    24,    25,
       26,    27,    28,    29,    -1,    31,    32,    -1,    -1,    -1,
-      -1,    -1,    -1,    39,    40,    41,    42,    -1,    -1,    -1,
-      -1,    -1,    48,    22,    23,    24,    25,    26,    27,    28,
-      29,    -1,    31,    32,    -1,    -1,    -1,    -1,    -1,    -1,
-      39,    40,    41,    42,    -1,    -1,    45,    22,    23,    24,
-      25,    26,    27,    28,    29,    -1,    31,    32,    -1,    -1,
-      -1,    -1,    -1,    -1,    39,    40,    41,    42,    -1,    -1,
-      45,    22,    23,    24,    25,    26,    27,    28,    29,    -1,
-      31,    32,    -1,    -1,    -1,    -1,    -1,    -1,    39,    40,
-      41,    42,    -1,    -1,    45,    22,    23,    24,    25,    26,
-      27,    28,    29,    -1,    31,    32,    -1,    -1,    -1,    -1,
-      -1,    -1,    39,    40,    41,    42,    -1,    -1,    45,    22,
-      23,    24,    25,    26,    27,    28,    29,    -1,    31,    32,
-      -1,    -1,    -1,    -1,    -1,    -1,    39,    40,    41,    42,
-      22,    23,    24,    25,    26,    27,    28,    -1,    -1,    31,
+      -1,    -1,    -1,    39,    40,    41,    42,    -1,    -1,    45,
+      22,    23,    24,    25,    26,    27,    28,    29,    -1,    31,
       32,    -1,    -1,    -1,    -1,    -1,    -1,    39,    40,    41,
-      42,    22,    23,    24,    25,    26,    27,    -1,    -1,    -1,
-      31,    32,    -1,    -1,    -1,    -1,    -1,    -1,    39,    40,
-      41,    42,     3,     4,     5,     6,     7,     8,    -1,    10,
-      11,    12,    -1,    -1,    15,    16,    24,    25,    26,    27,
-      21,    -1,    -1,    31,    32,    -1,    -1,    -1,    -1,    -1,
-      -1,    39,    40,    41,    42
+      42,    -1,    -1,    45,    22,    23,    24,    25,    26,    27,
+      28,    29,    -1,    31,    32,    -1,    -1,    -1,    -1,    -1,
+      -1,    39,    40,    41,    42,    22,    23,    24,    25,    26,
+      27,    28,    -1,    -1,    31,    32,    -1,    -1,    -1,    -1,
+      -1,    -1,    39,    40,    41,    42,    22,    23,    24,    25,
+      26,    27,    -1,    -1,    -1,    31,    32,    -1,    -1,    -1,
+      -1,    -1,    -1,    39,    40,    41,    42,     3,     4,     5,
+       6,     7,     8,    -1,    10,    11,    12,    -1,    -1,    15,
+      16,    24,    25,    26,    27,    21,    -1,    -1,    31,    32,
+      -1,    -1,    -1,    -1,    -1,    -1,    39,    40,    41,    42
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
@@ -878,20 +883,21 @@ static const yytype_int8 yystos[] =
       24,    44,    44,    48,    49,    21,    45,    61,    63,    64,
       65,    17,    50,    47,    52,    66,    21,    45,    51,    50,
       38,    48,    21,     8,    10,    11,    12,    15,    16,    21,
-      60,    61,    67,    68,    69,    73,    74,    75,    76,    78,
-      66,    64,    48,    19,    25,    44,    44,    44,    17,    18,
-      19,    20,    21,    30,    31,    32,    40,    44,    79,    44,
-      44,    38,    49,    67,    21,    53,    67,    48,    79,    79,
-      21,    61,    77,    49,    79,    79,    79,    79,    79,    22,
-      23,    24,    25,    26,    27,    28,    29,    31,    32,    39,
-      40,    41,    42,    48,    17,    18,    19,    20,    21,    33,
-      70,    21,    19,    79,    79,    45,    45,    38,    21,    48,
-      79,    45,    79,    79,    79,    79,    79,    79,    79,    79,
-      79,    79,    79,    79,    45,    45,    45,    45,    45,    35,
-      36,    71,    72,    45,    45,    49,    48,    48,    50,    66,
-      66,    79,    38,    79,    50,    48,    48,    48,    48,    48,
-      21,    34,    71,    48,    48,    79,    38,     9,    79,    48,
-      37,    50,    79,    66,    79,    45,    48,    45,    48,    66
+      60,    61,    67,    68,    69,    70,    74,    75,    76,    77,
+      79,    66,    64,    48,    19,    25,    44,    44,    44,    17,
+      18,    19,    20,    21,    30,    31,    32,    40,    44,    80,
+      44,    44,    38,    49,    67,    21,    53,    67,    48,    80,
+      80,    21,    61,    78,    49,    80,    80,    80,    80,    80,
+      22,    23,    24,    25,    26,    27,    28,    29,    31,    32,
+      39,    40,    41,    42,    48,    17,    18,    19,    20,    21,
+      33,    71,    21,    19,    80,    80,    45,    45,    38,    21,
+      48,    80,    45,    80,    80,    80,    80,    80,    80,    80,
+      80,    80,    80,    80,    80,    45,    45,    45,    45,    45,
+      35,    36,    72,    73,    45,    45,    49,    48,    48,    50,
+      66,    66,    80,    38,    80,    50,    48,    48,    48,    48,
+      48,    21,    34,    72,    48,    48,    80,    38,     9,    80,
+      48,    37,    50,    80,    66,    80,    45,    48,    45,    48,
+      66
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
@@ -900,12 +906,12 @@ static const yytype_int8 yyr1[] =
        0,    54,    55,    56,    56,    57,    58,    58,    59,    59,
       60,    60,    60,    60,    61,    61,    61,    61,    61,    62,
       62,    63,    63,    64,    64,    65,    66,    67,    67,    67,
-      68,    68,    68,    68,    68,    68,    68,    69,    69,    69,
-      69,    69,    69,    70,    71,    71,    72,    72,    73,    73,
-      74,    74,    75,    76,    77,    77,    78,    78,    78,    79,
-      79,    79,    79,    79,    79,    79,    79,    79,    79,    79,
-      79,    79,    79,    79,    79,    79,    79,    79,    79,    79,
-      79,    79,    79,    79
+      68,    68,    68,    68,    68,    68,    68,    69,    70,    70,
+      70,    70,    70,    70,    71,    72,    72,    73,    73,    74,
+      74,    75,    75,    76,    77,    78,    78,    79,    79,    79,
+      80,    80,    80,    80,    80,    80,    80,    80,    80,    80,
+      80,    80,    80,    80,    80,    80,    80,    80,    80,    80,
+      80,    80,    80,    80,    80
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
@@ -914,12 +920,12 @@ static const yytype_int8 yyr2[] =
        0,     2,     2,     0,     2,     7,     1,     2,     1,     1,
        3,     6,     5,     7,     1,     1,     1,     1,     1,     6,
        5,     0,     1,     1,     3,     2,     3,     0,     2,     2,
-       1,     1,     1,     1,     1,     1,     3,     5,     5,     5,
-       5,     5,     5,     3,     1,     2,     1,     3,     5,     8,
-       5,     7,     5,     9,     3,     4,     4,     7,     4,     1,
-       1,     1,     1,     1,     4,     3,     3,     3,     3,     3,
-       3,     3,     2,     3,     3,     3,     3,     3,     3,     2,
-       2,     2,     2,     2
+       1,     1,     1,     1,     1,     1,     1,     3,     5,     5,
+       5,     5,     5,     5,     3,     1,     2,     1,     3,     5,
+       8,     5,     7,     5,     9,     3,     4,     4,     7,     4,
+       1,     1,     1,     1,     1,     4,     3,     3,     3,     3,
+       3,     3,     3,     2,     3,     3,     3,     3,     3,     3,
+       2,     2,     2,     2,     2
 };
 
 
@@ -1383,90 +1389,89 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* programa: includes declaracoes  */
-#line 115 "parser.y"
+#line 118 "parser.y"
     {
         (yyval.no) = criar_no("PROGRAMA", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
         raiz = (yyval.no);
     }
-#line 1394 "parser.tab.c"
+#line 1400 "parser.tab.c"
     break;
 
   case 3: /* includes: %empty  */
-#line 125 "parser.y"
+#line 128 "parser.y"
     {
         (yyval.no) = criar_no("INCLUDES", "");
     }
-#line 1402 "parser.tab.c"
+#line 1408 "parser.tab.c"
     break;
 
   case 4: /* includes: includes include_stmt  */
-#line 129 "parser.y"
+#line 132 "parser.y"
     {
         (yyval.no) = (yyvsp[0].no);
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1411 "parser.tab.c"
+#line 1417 "parser.tab.c"
     break;
 
   case 5: /* include_stmt: '#' INCLUDE MENOR ID '.' ID MAIOR  */
-#line 137 "parser.y"
+#line 140 "parser.y"
     {
         char include_name[100];
         sprintf(include_name, "%s.%s", (yyvsp[-3].sval), (yyvsp[-1].sval));
         (yyval.no) = criar_no("INCLUDE", include_name);
     }
-#line 1421 "parser.tab.c"
+#line 1427 "parser.tab.c"
     break;
 
   case 6: /* declaracoes: declaracao  */
-#line 146 "parser.y"
+#line 149 "parser.y"
     { 
         (yyval.no) = criar_no("DECLARACOES", "");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1430 "parser.tab.c"
+#line 1436 "parser.tab.c"
     break;
 
   case 7: /* declaracoes: declaracao declaracoes  */
-#line 151 "parser.y"
+#line 154 "parser.y"
     {
         (yyval.no) = (yyvsp[0].no);
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1439 "parser.tab.c"
+#line 1445 "parser.tab.c"
     break;
 
   case 8: /* declaracao: declaracao_variavel  */
-#line 159 "parser.y"
+#line 162 "parser.y"
     { 
         (yyval.no) = (yyvsp[0].no);
     }
-#line 1447 "parser.tab.c"
+#line 1453 "parser.tab.c"
     break;
 
   case 9: /* declaracao: declaracao_funcao  */
-#line 163 "parser.y"
+#line 166 "parser.y"
     { 
         (yyval.no) = (yyvsp[0].no);
     }
-#line 1455 "parser.tab.c"
+#line 1461 "parser.tab.c"
     break;
 
   case 10: /* declaracao_variavel: tipo ID ';'  */
-#line 170 "parser.y"
+#line 173 "parser.y"
     {
-        verificar_declaracao_duplicada(tabela, (yyvsp[-1].sval), linha);
         (yyval.no) = criar_no("DECLARACAO_VAR", (yyvsp[-1].sval));
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_simbolo(tabela, (yyvsp[-1].sval), (yyvsp[-2].no)->valor, "variavel", linha);
     }
-#line 1466 "parser.tab.c"
+#line 1471 "parser.tab.c"
     break;
 
   case 11: /* declaracao_variavel: tipo ID '[' NUM_INT ']' ';'  */
-#line 177 "parser.y"
+#line 179 "parser.y"
     {
         char temp[32];
         sprintf(temp, "%s[%d]", (yyvsp[-4].sval), (yyvsp[-2].ival));
@@ -1474,11 +1479,11 @@ yyreduce:
         adicionar_filho((yyval.no), (yyvsp[-5].no));
         adicionar_simbolo(tabela, (yyvsp[-4].sval), (yyvsp[-5].no)->valor, "variavel", linha);
     }
-#line 1478 "parser.tab.c"
+#line 1483 "parser.tab.c"
     break;
 
   case 12: /* declaracao_variavel: tipo ID '[' ']' ';'  */
-#line 185 "parser.y"
+#line 187 "parser.y"
     {
         char temp[32];
         sprintf(temp, "%s[]", (yyvsp[-3].sval));
@@ -1486,62 +1491,62 @@ yyreduce:
         adicionar_filho((yyval.no), (yyvsp[-4].no));
         adicionar_simbolo(tabela, (yyvsp[-3].sval), (yyvsp[-4].no)->valor, "variavel", linha);
     }
-#line 1490 "parser.tab.c"
+#line 1495 "parser.tab.c"
     break;
 
   case 13: /* declaracao_variavel: tipo ID '[' ']' '=' STRING ';'  */
-#line 193 "parser.y"
+#line 195 "parser.y"
     {
         (yyval.no) = criar_no("DECLARACAO_STRING", (yyvsp[-5].sval));
         adicionar_filho((yyval.no), (yyvsp[-6].no));
         adicionar_filho((yyval.no), criar_no("STRING", (yyvsp[-1].sval)));
         adicionar_simbolo(tabela, (yyvsp[-5].sval), (yyvsp[-6].no)->valor, "variavel", linha);
     }
-#line 1501 "parser.tab.c"
+#line 1506 "parser.tab.c"
     break;
 
   case 14: /* tipo: TIPO_INT  */
-#line 203 "parser.y"
+#line 205 "parser.y"
     { 
         (yyval.no) = criar_no("TIPO", "int");
     }
-#line 1509 "parser.tab.c"
+#line 1514 "parser.tab.c"
     break;
 
   case 15: /* tipo: TIPO_FLOAT  */
-#line 207 "parser.y"
+#line 209 "parser.y"
     { 
         (yyval.no) = criar_no("TIPO", "float");
     }
-#line 1517 "parser.tab.c"
+#line 1522 "parser.tab.c"
     break;
 
   case 16: /* tipo: TIPO_CHAR  */
-#line 211 "parser.y"
+#line 213 "parser.y"
     { 
         (yyval.no) = criar_no("TIPO", "char");
     }
-#line 1525 "parser.tab.c"
+#line 1530 "parser.tab.c"
     break;
 
   case 17: /* tipo: TIPO_STRING  */
-#line 215 "parser.y"
+#line 217 "parser.y"
     { 
         (yyval.no) = criar_no("TIPO", "string");
     }
-#line 1533 "parser.tab.c"
+#line 1538 "parser.tab.c"
     break;
 
   case 18: /* tipo: VOID  */
-#line 219 "parser.y"
+#line 221 "parser.y"
     { 
         (yyval.no) = criar_no("TIPO", "void");
     }
-#line 1541 "parser.tab.c"
+#line 1546 "parser.tab.c"
     break;
 
   case 19: /* declaracao_funcao: tipo ID '(' parametros ')' bloco  */
-#line 226 "parser.y"
+#line 228 "parser.y"
     {
         (yyval.no) = criar_no("FUNCAO", (yyvsp[-4].sval));
         adicionar_filho((yyval.no), (yyvsp[-5].no));
@@ -1549,594 +1554,595 @@ yyreduce:
         adicionar_filho((yyval.no), (yyvsp[0].no));
         adicionar_simbolo(tabela, (yyvsp[-4].sval), (yyvsp[-5].no)->valor, "funcao", linha);
     }
-#line 1553 "parser.tab.c"
+#line 1558 "parser.tab.c"
     break;
 
   case 20: /* declaracao_funcao: tipo MAIN '(' ')' bloco  */
-#line 234 "parser.y"
+#line 236 "parser.y"
     {
         (yyval.no) = criar_no("FUNCAO", "main");
         adicionar_filho((yyval.no), (yyvsp[-4].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
         adicionar_simbolo(tabela, "main", (yyvsp[-4].no)->valor, "funcao", linha);
     }
-#line 1564 "parser.tab.c"
+#line 1569 "parser.tab.c"
     break;
 
   case 21: /* parametros: %empty  */
-#line 244 "parser.y"
+#line 246 "parser.y"
     {
         (yyval.no) = criar_no("PARAMETROS", "");
     }
-#line 1572 "parser.tab.c"
+#line 1577 "parser.tab.c"
     break;
 
   case 22: /* parametros: lista_parametros  */
-#line 248 "parser.y"
+#line 250 "parser.y"
     {
         (yyval.no) = criar_no("PARAMETROS", "");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1581 "parser.tab.c"
+#line 1586 "parser.tab.c"
     break;
 
   case 23: /* lista_parametros: parametro  */
-#line 256 "parser.y"
+#line 258 "parser.y"
     {
         (yyval.no) = criar_no("LISTA_PARAMETROS", "");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1590 "parser.tab.c"
+#line 1595 "parser.tab.c"
     break;
 
   case 24: /* lista_parametros: parametro ',' lista_parametros  */
-#line 261 "parser.y"
+#line 263 "parser.y"
     {
         (yyval.no) = (yyvsp[0].no);
         adicionar_filho((yyval.no), (yyvsp[-2].no));
     }
-#line 1599 "parser.tab.c"
+#line 1604 "parser.tab.c"
     break;
 
   case 25: /* parametro: tipo ID  */
-#line 269 "parser.y"
+#line 271 "parser.y"
     {
         (yyval.no) = criar_no("PARAMETRO", (yyvsp[0].sval));
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1608 "parser.tab.c"
+#line 1613 "parser.tab.c"
     break;
 
   case 26: /* bloco: '{' comandos '}'  */
-#line 277 "parser.y"
+#line 279 "parser.y"
     {
         (yyval.no) = criar_no("BLOCO", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1617 "parser.tab.c"
+#line 1622 "parser.tab.c"
     break;
 
   case 27: /* comandos: %empty  */
-#line 285 "parser.y"
+#line 287 "parser.y"
     {
         (yyval.no) = criar_no("COMANDOS", "");
     }
-#line 1625 "parser.tab.c"
+#line 1630 "parser.tab.c"
     break;
 
   case 28: /* comandos: comando comandos  */
-#line 289 "parser.y"
+#line 291 "parser.y"
     {
         (yyval.no) = criar_no("COMANDOS", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1635 "parser.tab.c"
+#line 1640 "parser.tab.c"
     break;
 
   case 29: /* comandos: declaracao_variavel comandos  */
-#line 295 "parser.y"
+#line 297 "parser.y"
     {
         (yyval.no) = criar_no("COMANDOS", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1645 "parser.tab.c"
+#line 1650 "parser.tab.c"
     break;
 
   case 30: /* comando: atribuicao  */
-#line 303 "parser.y"
+#line 305 "parser.y"
                { (yyval.no) = (yyvsp[0].no); }
-#line 1651 "parser.tab.c"
+#line 1656 "parser.tab.c"
     break;
 
   case 31: /* comando: comando_if  */
-#line 304 "parser.y"
+#line 306 "parser.y"
                  { (yyval.no) = (yyvsp[0].no); }
-#line 1657 "parser.tab.c"
+#line 1662 "parser.tab.c"
     break;
 
   case 32: /* comando: comando_while  */
-#line 305 "parser.y"
+#line 307 "parser.y"
                     { (yyval.no) = (yyvsp[0].no); }
-#line 1663 "parser.tab.c"
+#line 1668 "parser.tab.c"
     break;
 
   case 33: /* comando: comando_for  */
-#line 306 "parser.y"
+#line 308 "parser.y"
                   { (yyval.no) = (yyvsp[0].no); }
-#line 1669 "parser.tab.c"
+#line 1674 "parser.tab.c"
     break;
 
   case 34: /* comando: comando_print  */
-#line 307 "parser.y"
+#line 309 "parser.y"
                     { (yyval.no) = (yyvsp[0].no); }
-#line 1675 "parser.tab.c"
+#line 1680 "parser.tab.c"
     break;
 
   case 35: /* comando: comando_scan  */
-#line 308 "parser.y"
+#line 310 "parser.y"
                    { (yyval.no) = (yyvsp[0].no); }
-#line 1681 "parser.tab.c"
+#line 1686 "parser.tab.c"
     break;
 
-  case 36: /* comando: RETURN expressao ';'  */
-#line 310 "parser.y"
+  case 36: /* comando: return_stmt  */
+#line 311 "parser.y"
+                  { (yyval.no) = (yyvsp[0].no); }
+#line 1692 "parser.tab.c"
+    break;
+
+  case 37: /* return_stmt: RETURN expressao ';'  */
+#line 316 "parser.y"
     {
         (yyval.no) = criar_no("RETURN", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1690 "parser.tab.c"
+#line 1701 "parser.tab.c"
     break;
 
-  case 37: /* comando_print: PRINT '(' string_interpolada ')' ';'  */
-#line 318 "parser.y"
+  case 38: /* comando_print: PRINT '(' string_interpolada ')' ';'  */
+#line 324 "parser.y"
     {
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
     }
-#line 1699 "parser.tab.c"
+#line 1710 "parser.tab.c"
     break;
 
-  case 38: /* comando_print: PRINT '(' ID ')' ';'  */
-#line 323 "parser.y"
+  case 39: /* comando_print: PRINT '(' ID ')' ';'  */
+#line 329 "parser.y"
     {
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-2].sval)));
     }
-#line 1708 "parser.tab.c"
+#line 1719 "parser.tab.c"
     break;
 
-  case 39: /* comando_print: PRINT '(' NUM_INT ')' ';'  */
-#line 328 "parser.y"
+  case 40: /* comando_print: PRINT '(' NUM_INT ')' ';'  */
+#line 334 "parser.y"
     {
         char valor[32];
         sprintf(valor, "%d", (yyvsp[-2].ival));
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), criar_no("NUM_INT", valor));
     }
-#line 1719 "parser.tab.c"
+#line 1730 "parser.tab.c"
     break;
 
-  case 40: /* comando_print: PRINT '(' NUM_FLOAT ')' ';'  */
-#line 335 "parser.y"
+  case 41: /* comando_print: PRINT '(' NUM_FLOAT ')' ';'  */
+#line 341 "parser.y"
     {
         char valor[32];
         sprintf(valor, "%f", (yyvsp[-2].fval));
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), criar_no("NUM_FLOAT", valor));
     }
-#line 1730 "parser.tab.c"
+#line 1741 "parser.tab.c"
     break;
 
-  case 41: /* comando_print: PRINT '(' STRING ')' ';'  */
-#line 342 "parser.y"
+  case 42: /* comando_print: PRINT '(' STRING ')' ';'  */
+#line 348 "parser.y"
     {
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), criar_no("STRING", (yyvsp[-2].sval)));
     }
-#line 1739 "parser.tab.c"
+#line 1750 "parser.tab.c"
     break;
 
-  case 42: /* comando_print: PRINT '(' CHAR ')' ';'  */
-#line 347 "parser.y"
+  case 43: /* comando_print: PRINT '(' CHAR ')' ';'  */
+#line 353 "parser.y"
     {
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), criar_no("CHAR", (yyvsp[-2].sval)));
     }
-#line 1748 "parser.tab.c"
+#line 1759 "parser.tab.c"
     break;
 
-  case 43: /* string_interpolada: STRING_START partes_string STRING_END  */
-#line 355 "parser.y"
+  case 44: /* string_interpolada: STRING_START partes_string STRING_END  */
+#line 361 "parser.y"
     {
         (yyval.no) = criar_no("STRING_INTERPOLADA", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1757 "parser.tab.c"
+#line 1768 "parser.tab.c"
     break;
 
-  case 44: /* partes_string: parte_string  */
-#line 363 "parser.y"
+  case 45: /* partes_string: parte_string  */
+#line 369 "parser.y"
     {
         (yyval.no) = criar_no("PARTES_STRING", "");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1766 "parser.tab.c"
+#line 1777 "parser.tab.c"
     break;
 
-  case 45: /* partes_string: parte_string partes_string  */
-#line 368 "parser.y"
+  case 46: /* partes_string: parte_string partes_string  */
+#line 374 "parser.y"
     {
         (yyval.no) = (yyvsp[0].no);
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1775 "parser.tab.c"
+#line 1786 "parser.tab.c"
     break;
 
-  case 46: /* parte_string: STRING_TEXT  */
-#line 376 "parser.y"
+  case 47: /* parte_string: STRING_TEXT  */
+#line 382 "parser.y"
     {
         (yyval.no) = criar_no("TEXTO", (yyvsp[0].sval));
     }
-#line 1783 "parser.tab.c"
+#line 1794 "parser.tab.c"
     break;
 
-  case 47: /* parte_string: INTERPOLACAO_START ID INTERPOLACAO_END  */
-#line 380 "parser.y"
+  case 48: /* parte_string: INTERPOLACAO_START ID INTERPOLACAO_END  */
+#line 386 "parser.y"
     {
         (yyval.no) = criar_no("INTERPOLACAO", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-1].sval)));
     }
-#line 1792 "parser.tab.c"
+#line 1803 "parser.tab.c"
     break;
 
-  case 48: /* comando_scan: SCAN '(' ID ')' ';'  */
-#line 388 "parser.y"
+  case 49: /* comando_scan: SCAN '(' ID ')' ';'  */
+#line 394 "parser.y"
     {
         (yyval.no) = criar_no("SCAN", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-2].sval)));
     }
-#line 1801 "parser.tab.c"
+#line 1812 "parser.tab.c"
     break;
 
-  case 49: /* comando_scan: SCAN '(' ID '[' expressao ']' ')' ';'  */
-#line 393 "parser.y"
+  case 50: /* comando_scan: SCAN '(' ID '[' expressao ']' ')' ';'  */
+#line 399 "parser.y"
     {
         (yyval.no) = criar_no("SCAN_VETOR", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-5].sval)));
         adicionar_filho((yyval.no), (yyvsp[-3].no));  /* índice do vetor */
     }
-#line 1811 "parser.tab.c"
+#line 1822 "parser.tab.c"
     break;
 
-  case 50: /* comando_if: IF '(' expressao ')' bloco  */
-#line 402 "parser.y"
-    {
-        (yyval.no) = criar_no("IF", "");
-        adicionar_filho((yyval.no), (yyvsp[-2].no));
-        adicionar_filho((yyval.no), (yyvsp[0].no));
-    }
-#line 1821 "parser.tab.c"
-    break;
-
-  case 51: /* comando_if: IF '(' expressao ')' bloco ELSE bloco  */
+  case 51: /* comando_if: IF '(' expressao ')' bloco  */
 #line 408 "parser.y"
     {
-        (yyval.no) = criar_no("IF_ELSE", "");
-        adicionar_filho((yyval.no), (yyvsp[-4].no));
+        (yyval.no) = criar_no("IF", "");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
 #line 1832 "parser.tab.c"
     break;
 
-  case 52: /* comando_while: WHILE '(' expressao ')' bloco  */
-#line 418 "parser.y"
+  case 52: /* comando_if: IF '(' expressao ')' bloco ELSE bloco  */
+#line 414 "parser.y"
+    {
+        (yyval.no) = criar_no("IF_ELSE", "");
+        adicionar_filho((yyval.no), (yyvsp[-4].no));
+        adicionar_filho((yyval.no), (yyvsp[-2].no));
+        adicionar_filho((yyval.no), (yyvsp[0].no));
+    }
+#line 1843 "parser.tab.c"
+    break;
+
+  case 53: /* comando_while: WHILE '(' expressao ')' bloco  */
+#line 424 "parser.y"
     {
         (yyval.no) = criar_no("WHILE", "");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
-    }
-#line 1842 "parser.tab.c"
-    break;
-
-  case 53: /* comando_for: FOR '(' atribuicao_for ';' expressao ';' expressao ')' bloco  */
-#line 427 "parser.y"
-    {
-        (yyval.no) = criar_no("FOR", "");
-        adicionar_filho((yyval.no), (yyvsp[-6].no)); // inicialização
-        adicionar_filho((yyval.no), (yyvsp[-4].no)); // condição
-        adicionar_filho((yyval.no), (yyvsp[-2].no)); // incremento
-        adicionar_filho((yyval.no), (yyvsp[0].no)); // bloco
+        verificar_tipo_operacao((yyvsp[-2].no));
     }
 #line 1854 "parser.tab.c"
     break;
 
-  case 54: /* atribuicao_for: ID '=' expressao  */
-#line 438 "parser.y"
+  case 54: /* comando_for: FOR '(' atribuicao_for ';' expressao ';' expressao ')' bloco  */
+#line 434 "parser.y"
+    { 
+        (yyval.no) = criar_no("FOR", "");
+        adicionar_filho((yyval.no), (yyvsp[-6].no));
+        adicionar_filho((yyval.no), (yyvsp[-4].no));
+        adicionar_filho((yyval.no), (yyvsp[-2].no));
+        adicionar_filho((yyval.no), (yyvsp[0].no));
+    }
+#line 1866 "parser.tab.c"
+    break;
+
+  case 55: /* atribuicao_for: ID '=' expressao  */
+#line 445 "parser.y"
     {
         (yyval.no) = criar_no("ATRIBUICAO", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-2].sval)));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1864 "parser.tab.c"
+#line 1876 "parser.tab.c"
     break;
 
-  case 56: /* atribuicao: ID '=' expressao ';'  */
-#line 448 "parser.y"
+  case 57: /* atribuicao: ID '=' expressao ';'  */
+#line 455 "parser.y"
     {
-        if (!verificar_variavel_declarada(tabela, (yyvsp[-3].sval))) {
-            char msg[100];
-            sprintf(msg, "Variável '%s' não foi declarada", (yyvsp[-3].sval));
-            erro_semantico(msg, linha);
-        }
         (yyval.no) = criar_no("ATRIBUICAO", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-3].sval)));
         adicionar_filho((yyval.no), (yyvsp[-1].no));
-        verificar_tipo_operacao((yyval.no));
     }
-#line 1880 "parser.tab.c"
+#line 1886 "parser.tab.c"
     break;
 
-  case 57: /* atribuicao: ID '[' expressao ']' '=' expressao ';'  */
-#line 460 "parser.y"
+  case 58: /* atribuicao: ID '[' expressao ']' '=' expressao ';'  */
+#line 461 "parser.y"
     {
         (yyval.no) = criar_no("ATRIBUICAO_VETOR", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-6].sval)));
         adicionar_filho((yyval.no), (yyvsp[-4].no));  // índice
         adicionar_filho((yyval.no), (yyvsp[-1].no));  // valor
     }
-#line 1891 "parser.tab.c"
+#line 1897 "parser.tab.c"
     break;
 
-  case 58: /* atribuicao: ID '=' STRING ';'  */
-#line 467 "parser.y"
+  case 59: /* atribuicao: ID '=' STRING ';'  */
+#line 468 "parser.y"
     {
         (yyval.no) = criar_no("ATRIBUICAO_STRING", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-3].sval)));
         adicionar_filho((yyval.no), criar_no("STRING", (yyvsp[-1].sval)));
     }
-#line 1901 "parser.tab.c"
+#line 1907 "parser.tab.c"
     break;
 
-  case 59: /* expressao: NUM_INT  */
-#line 476 "parser.y"
+  case 60: /* expressao: NUM_INT  */
+#line 477 "parser.y"
     {
         char valor[32];
         sprintf(valor, "%d", (yyvsp[0].ival));
         (yyval.no) = criar_no("NUM_INT", valor);
     }
-#line 1911 "parser.tab.c"
+#line 1917 "parser.tab.c"
     break;
 
-  case 60: /* expressao: NUM_FLOAT  */
-#line 482 "parser.y"
+  case 61: /* expressao: NUM_FLOAT  */
+#line 483 "parser.y"
     {
         char valor[32];
         sprintf(valor, "%f", (yyvsp[0].fval));
         (yyval.no) = criar_no("NUM_FLOAT", valor);
     }
-#line 1921 "parser.tab.c"
+#line 1927 "parser.tab.c"
     break;
 
-  case 61: /* expressao: ID  */
-#line 488 "parser.y"
+  case 62: /* expressao: ID  */
+#line 489 "parser.y"
     { 
         (yyval.no) = criar_no("ID", (yyvsp[0].sval));
     }
-#line 1929 "parser.tab.c"
+#line 1935 "parser.tab.c"
     break;
 
-  case 62: /* expressao: STRING  */
-#line 492 "parser.y"
+  case 63: /* expressao: STRING  */
+#line 493 "parser.y"
     { 
         (yyval.no) = criar_no("STRING", (yyvsp[0].sval));
     }
-#line 1937 "parser.tab.c"
+#line 1943 "parser.tab.c"
     break;
 
-  case 63: /* expressao: CHAR  */
-#line 496 "parser.y"
+  case 64: /* expressao: CHAR  */
+#line 497 "parser.y"
     { 
         (yyval.no) = criar_no("CHAR", (yyvsp[0].sval));
     }
-#line 1945 "parser.tab.c"
+#line 1951 "parser.tab.c"
     break;
 
-  case 64: /* expressao: ID '[' expressao ']'  */
-#line 500 "parser.y"
+  case 65: /* expressao: ID '[' expressao ']'  */
+#line 501 "parser.y"
     {
         (yyval.no) = criar_no("ACESSO_VETOR", (yyvsp[-3].sval));
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1954 "parser.tab.c"
+#line 1960 "parser.tab.c"
     break;
 
-  case 65: /* expressao: expressao '+' expressao  */
-#line 505 "parser.y"
+  case 66: /* expressao: expressao '+' expressao  */
+#line 506 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "+");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1964 "parser.tab.c"
+#line 1970 "parser.tab.c"
     break;
 
-  case 66: /* expressao: expressao '-' expressao  */
-#line 511 "parser.y"
+  case 67: /* expressao: expressao '-' expressao  */
+#line 512 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "-");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1974 "parser.tab.c"
+#line 1980 "parser.tab.c"
     break;
 
-  case 67: /* expressao: expressao '*' expressao  */
-#line 517 "parser.y"
+  case 68: /* expressao: expressao '*' expressao  */
+#line 518 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "*");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1984 "parser.tab.c"
+#line 1990 "parser.tab.c"
     break;
 
-  case 68: /* expressao: expressao '/' expressao  */
-#line 523 "parser.y"
+  case 69: /* expressao: expressao '/' expressao  */
+#line 524 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "/");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1994 "parser.tab.c"
+#line 2000 "parser.tab.c"
     break;
 
-  case 69: /* expressao: expressao MAIOR expressao  */
-#line 529 "parser.y"
+  case 70: /* expressao: expressao MAIOR expressao  */
+#line 530 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", ">");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 2004 "parser.tab.c"
+#line 2010 "parser.tab.c"
     break;
 
-  case 70: /* expressao: expressao MENOR expressao  */
-#line 535 "parser.y"
+  case 71: /* expressao: expressao MENOR expressao  */
+#line 536 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "<");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 2014 "parser.tab.c"
+#line 2020 "parser.tab.c"
     break;
 
-  case 71: /* expressao: '(' expressao ')'  */
-#line 541 "parser.y"
+  case 72: /* expressao: '(' expressao ')'  */
+#line 542 "parser.y"
     {
         (yyval.no) = (yyvsp[-1].no);
     }
-#line 2022 "parser.tab.c"
+#line 2028 "parser.tab.c"
     break;
 
-  case 72: /* expressao: '-' expressao  */
-#line 545 "parser.y"
+  case 73: /* expressao: '-' expressao  */
+#line 546 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR_UNARIO", "-");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 2031 "parser.tab.c"
+#line 2037 "parser.tab.c"
     break;
 
-  case 73: /* expressao: expressao IGUAL expressao  */
-#line 550 "parser.y"
+  case 74: /* expressao: expressao IGUAL expressao  */
+#line 551 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "==");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 2041 "parser.tab.c"
+#line 2047 "parser.tab.c"
     break;
 
-  case 74: /* expressao: expressao DIFERENTE expressao  */
-#line 556 "parser.y"
+  case 75: /* expressao: expressao DIFERENTE expressao  */
+#line 557 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "!=");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 2051 "parser.tab.c"
+#line 2057 "parser.tab.c"
     break;
 
-  case 75: /* expressao: expressao MENOR_IGUAL expressao  */
-#line 562 "parser.y"
+  case 76: /* expressao: expressao MENOR_IGUAL expressao  */
+#line 563 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "<=");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 2061 "parser.tab.c"
+#line 2067 "parser.tab.c"
     break;
 
-  case 76: /* expressao: expressao MAIOR_IGUAL expressao  */
-#line 568 "parser.y"
+  case 77: /* expressao: expressao MAIOR_IGUAL expressao  */
+#line 569 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", ">=");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 2071 "parser.tab.c"
+#line 2077 "parser.tab.c"
     break;
 
-  case 77: /* expressao: expressao E expressao  */
-#line 574 "parser.y"
+  case 78: /* expressao: expressao E expressao  */
+#line 575 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "&&");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 2081 "parser.tab.c"
+#line 2087 "parser.tab.c"
     break;
 
-  case 78: /* expressao: expressao OU expressao  */
-#line 580 "parser.y"
+  case 79: /* expressao: expressao OU expressao  */
+#line 581 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "||");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 2091 "parser.tab.c"
+#line 2097 "parser.tab.c"
     break;
 
-  case 79: /* expressao: NAO expressao  */
-#line 586 "parser.y"
+  case 80: /* expressao: NAO expressao  */
+#line 587 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "!");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 2100 "parser.tab.c"
+#line 2106 "parser.tab.c"
     break;
 
-  case 80: /* expressao: INC expressao  */
-#line 591 "parser.y"
+  case 81: /* expressao: INC expressao  */
+#line 592 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR_PRE", "++");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 2109 "parser.tab.c"
+#line 2115 "parser.tab.c"
     break;
 
-  case 81: /* expressao: DEC expressao  */
-#line 596 "parser.y"
+  case 82: /* expressao: DEC expressao  */
+#line 597 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR_PRE", "--");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 2118 "parser.tab.c"
+#line 2124 "parser.tab.c"
     break;
 
-  case 82: /* expressao: expressao INC  */
-#line 601 "parser.y"
+  case 83: /* expressao: expressao INC  */
+#line 602 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR_POS", "++");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 2127 "parser.tab.c"
+#line 2133 "parser.tab.c"
     break;
 
-  case 83: /* expressao: expressao DEC  */
-#line 606 "parser.y"
+  case 84: /* expressao: expressao DEC  */
+#line 607 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR_POS", "--");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 2136 "parser.tab.c"
+#line 2142 "parser.tab.c"
     break;
 
 
-#line 2140 "parser.tab.c"
+#line 2146 "parser.tab.c"
 
       default: break;
     }
@@ -2329,7 +2335,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 612 "parser.y"
+#line 613 "parser.y"
 
 
 //ARVORE
@@ -2342,6 +2348,8 @@ No* criar_no(char* tipo, char* valor) {
     no->tipo = strdup(tipo);
     no->valor = strdup(valor ? valor : "");
     no->num_filhos = 0;
+    no->linha = linha;
+    no->pai = NULL;
     no->filhos = NULL;
     return no;
 }
@@ -2356,6 +2364,7 @@ void adicionar_filho(No* pai, No* filho) {
         exit(1);
     }
     pai->filhos[pai->num_filhos - 1] = filho;
+    filho->pai = pai; 
 }
 
 void imprimir_arvore(No* no, int nivel) {
@@ -2485,21 +2494,31 @@ void verificar_declaracao_duplicada(TabelaSimbolos* tabela, const char* nome, in
 }
 
 bool verificar_variavel_declarada(TabelaSimbolos* tabela, const char* nome) {
-    Escopo* atual = escopo_atual;
-    while (atual) {
-        for (int i = 0; i < atual->tabela->quantidade; i++) {
-            if (strcmp(atual->tabela->entradas[i].nome, nome) == 0) {
-                return true;
-            }
+    // Primeiro verifica na tabela atual
+    for (int i = 0; i < tabela->quantidade; i++) {
+        if (strcmp(tabela->entradas[i].nome, nome) == 0) {
+            return true;
         }
-        atual = atual->pai;
     }
     return false;
 }
 
 bool verificar_compatibilidade_tipos(const char* tipo1, const char* tipo2) {
-    if (strcmp(tipo1, tipo2) == 0) return true;
-    if (strcmp(tipo1, "float") == 0 && strcmp(tipo2, "int") == 0) return true;
+    // Tipos devem ser exatamente iguais
+    if (strcmp(tipo1, tipo2) == 0) 
+        return true;
+    
+    // Vetores do mesmo tipo são compatíveis
+    if (strstr(tipo1, "[]") != NULL && strstr(tipo2, "[]") != NULL) {
+        char base1[32], base2[32];
+        strncpy(base1, tipo1, strchr(tipo1, '[') - tipo1);
+        strncpy(base2, tipo2, strchr(tipo2, '[') - tipo2);
+        base1[strchr(tipo1, '[') - tipo1] = '\0';
+        base2[strchr(tipo2, '[') - tipo2] = '\0';
+        return strcmp(base1, base2) == 0;
+    }
+
+    // Se chegou aqui, os tipos não são compatíveis
     return false;
 }
 
@@ -2510,22 +2529,52 @@ bool is_tipo_numerico(const char* tipo) {
 const char* inferir_tipo_expressao(No* expressao) {
     if (!expressao) return NULL;
 
+    // Para literais numéricos
     if (strcmp(expressao->tipo, "NUM_INT") == 0) return "int";
     if (strcmp(expressao->tipo, "NUM_FLOAT") == 0) return "float";
     if (strcmp(expressao->tipo, "CHAR") == 0) return "char";
-    if (strcmp(expressao->tipo, "STRING") == 0) return "string";
+    if (strcmp(expressao->tipo, "STRING") == 0) return "char[]";
     
+    // Para identificadores
     if (strcmp(expressao->tipo, "ID") == 0) {
-        Escopo* atual = escopo_atual;
-        while (atual) {
-            for (int i = 0; i < atual->tabela->quantidade; i++) {
-                if (strcmp(atual->tabela->entradas[i].nome, expressao->valor) == 0) {
-                    return atual->tabela->entradas[i].tipo;
-                }
+        for (int i = 0; i < tabela->quantidade; i++) {
+            if (strcmp(tabela->entradas[i].nome, expressao->valor) == 0) {
+                return tabela->entradas[i].tipo;
             }
-            atual = atual->pai;
         }
     }
+
+    // Para operadores
+    if (strcmp(expressao->tipo, "OPERADOR") == 0) {
+        const char* tipo_esq = inferir_tipo_expressao(expressao->filhos[0]);
+        const char* tipo_dir = inferir_tipo_expressao(expressao->filhos[1]);
+        
+        // Operações aritméticas
+        if (strcmp(expressao->valor, "+") == 0 || 
+            strcmp(expressao->valor, "-") == 0 || 
+            strcmp(expressao->valor, "*") == 0 || 
+            strcmp(expressao->valor, "/") == 0) {
+            if (tipo_esq && tipo_dir && is_tipo_numerico(tipo_esq) && is_tipo_numerico(tipo_dir)) {
+                return tipo_esq; // Retorna o tipo do operando esquerdo
+            }
+        }
+        
+        // Operações de comparação
+        else if (strcmp(expressao->valor, ">") == 0 || 
+                 strcmp(expressao->valor, "<") == 0 || 
+                 strcmp(expressao->valor, ">=") == 0 || 
+                 strcmp(expressao->valor, "<=") == 0 ||
+                 strcmp(expressao->valor, "==") == 0 || 
+                 strcmp(expressao->valor, "!=") == 0) {
+            return "int"; // Comparações sempre retornam int (0 ou 1)
+        }
+    }
+
+    // Para expressões unárias
+    if (strcmp(expressao->tipo, "OPERADOR_UNARIO") == 0) {
+        return inferir_tipo_expressao(expressao->filhos[0]);
+    }
+
     return NULL;
 }
 
@@ -2536,25 +2585,48 @@ void verificar_tipo_operacao(No* no) {
         const char* tipo_esq = inferir_tipo_expressao(no->filhos[0]);
         const char* tipo_dir = inferir_tipo_expressao(no->filhos[1]);
 
-        if (strcmp(no->valor, "+") == 0 || 
-            strcmp(no->valor, "-") == 0 || 
-            strcmp(no->valor, "*") == 0 || 
-            strcmp(no->valor, "/") == 0) {
-            if (!is_tipo_numerico(tipo_esq) || !is_tipo_numerico(tipo_dir)) {
-                erro_semantico("Operação aritmética requer tipos numéricos", linha);
+        if (!tipo_esq || !tipo_dir) return;
+
+        // Comparações de igualdade (== e !=)
+        if (strcmp(no->valor, "==") == 0 || strcmp(no->valor, "!=") == 0) {
+            if ((strcmp(tipo_esq, "char[]") == 0 && is_tipo_numerico(tipo_dir)) || 
+                (is_tipo_numerico(tipo_esq) && strcmp(tipo_dir, "char[]") == 0)) {
+                erro_semantico("Não é possível comparar strings com tipos numéricos", no->linha);
+            }
+            else if (!verificar_compatibilidade_tipos(tipo_esq, tipo_dir)) {
+                char msg[200];
+                sprintf(msg, "Comparação de igualdade inválida entre tipos '%s' e '%s'", tipo_esq, tipo_dir);
+                erro_semantico(msg, no->linha);
             }
         }
+        // Comparações relacionais (>, <, >=, <=)
         else if (strcmp(no->valor, ">") == 0 || 
                  strcmp(no->valor, "<") == 0 || 
                  strcmp(no->valor, ">=") == 0 || 
                  strcmp(no->valor, "<=") == 0) {
-            if (!is_tipo_numerico(tipo_esq) || !is_tipo_numerico(tipo_dir)) {
-                erro_semantico("Comparação requer tipos numéricos", linha);
+            if (strcmp(tipo_esq, "char[]") == 0 || strcmp(tipo_dir, "char[]") == 0) {
+                erro_semantico("Não é possível usar strings em comparações relacionais", no->linha);
+            }
+            else if (!is_tipo_numerico(tipo_esq) || !is_tipo_numerico(tipo_dir)) {
+                char msg[200];
+                sprintf(msg, "Comparação relacional inválida entre tipos '%s' e '%s'", tipo_esq, tipo_dir);
+                erro_semantico(msg, no->linha);
             }
         }
-        else if (strcmp(no->valor, "==") == 0 || strcmp(no->valor, "!=") == 0) {
-            if (!verificar_compatibilidade_tipos(tipo_esq, tipo_dir)) {
-                erro_semantico("Comparação entre tipos incompatíveis", linha);
+        // Operações aritméticas (+, -, *, /)
+        else if (strcmp(no->valor, "+") == 0 || 
+                 strcmp(no->valor, "-") == 0 || 
+                 strcmp(no->valor, "*") == 0 || 
+                 strcmp(no->valor, "/") == 0) {
+            if (!is_tipo_numerico(tipo_esq) || !is_tipo_numerico(tipo_dir)) {
+                char msg[200];
+                sprintf(msg, "Operação aritmética inválida entre tipos '%s' e '%s'", tipo_esq, tipo_dir);
+                erro_semantico(msg, no->linha);
+            }
+            // Verificação adicional para divisão por zero (opcional)
+            if (strcmp(no->valor, "/") == 0 && strcmp(no->filhos[1]->tipo, "NUM_INT") == 0 && 
+                strcmp(no->filhos[1]->valor, "0") == 0) {
+                erro_semantico("Divisão por zero", no->linha);
             }
         }
     }
@@ -2567,37 +2639,182 @@ void verificar_acesso_vetor(No* no) {
         erro_semantico("Índice de vetor deve ser do tipo inteiro", linha);
     }
 }
+void verificar_declaracoes(No* no) {
+    if (strcmp(no->tipo, "DECLARACAO_VAR") == 0) {
+        verificar_declaracao_duplicada(tabela, no->valor, no->linha);
+    }
+}
+
+void verificar_identificador(No* no) {
+    if (strcmp(no->tipo, "ID") == 0) {
+        // Se estiver dentro de um bloco FOR
+        No* atual = no->pai;
+        while (atual != NULL) {
+            if (strcmp(atual->tipo, "FOR") == 0) {
+                // Verifica se o ID é a variável de controle do for
+                if (atual->filhos[0] && strcmp(atual->filhos[0]->tipo, "DECLARACAO_VAR") == 0 &&
+                    strcmp(atual->filhos[0]->valor, no->valor) == 0) {
+                    return; // É a variável de controle do for, não precisa verificar
+                }
+            }
+            atual = atual->pai;
+        }
+        
+        if (!verificar_variavel_declarada(tabela, no->valor)) {
+            char msg[100];
+            sprintf(msg, "Variável '%s' não foi declarada", no->valor);
+            erro_semantico(msg, no->linha);
+        }
+    }
+}
+
+void verificar_atribuicao(No* no) {
+    if (strcmp(no->tipo, "ATRIBUICAO") == 0) {
+        const char* id = no->filhos[0]->valor;
+        const char* tipo_id = NULL;
+        for (int i = 0; i < tabela->quantidade; i++) {
+            if (strcmp(tabela->entradas[i].nome, id) == 0) {
+                tipo_id = tabela->entradas[i].tipo;
+                break;
+            }
+        }
+        const char* tipo_expr = inferir_tipo_expressao(no->filhos[1]);
+        if (tipo_id && tipo_expr && !verificar_compatibilidade_tipos(tipo_id, tipo_expr)) {
+            char msg[200];
+            sprintf(msg, "Atribuição inválida: não é possível atribuir tipo '%s' a variável do tipo '%s'", 
+                    tipo_expr, tipo_id);
+            erro_semantico(msg, no->linha);
+        }
+    }
+}
+
+void verificar_operador_igualdade(const char* tipo_esq, const char* tipo_dir, int linha) {
+    if ((strcmp(tipo_esq, "char[]") == 0 && is_tipo_numerico(tipo_dir)) || 
+        (is_tipo_numerico(tipo_esq) && strcmp(tipo_dir, "char[]") == 0)) {
+        erro_semantico("Não é possível comparar strings com tipos numéricos", linha);
+    }
+    else if (!verificar_compatibilidade_tipos(tipo_esq, tipo_dir)) {
+        char msg[200];
+        sprintf(msg, "Comparação de igualdade inválida entre tipos '%s' e '%s'", tipo_esq, tipo_dir);
+        erro_semantico(msg, linha);
+    }
+}
+
+void verificar_operador_relacional(const char* tipo_esq, const char* tipo_dir, int linha) {
+    if (!verificar_compatibilidade_tipos(tipo_esq, tipo_dir)) {
+        char msg[200];
+        sprintf(msg, "Comparação relacional inválida entre tipos '%s' e '%s'", tipo_esq, tipo_dir);
+        erro_semantico(msg, linha);
+    }
+}
+
+void verificar_operador_aritmetico(const char* tipo_esq, const char* tipo_dir, int linha) {
+    if (!is_tipo_numerico(tipo_esq) || !is_tipo_numerico(tipo_dir)) {
+        char msg[200];
+        sprintf(msg, "Operação aritmética inválida entre tipos '%s' e '%s'", tipo_esq, tipo_dir);
+        erro_semantico(msg, linha);
+    }
+}
+
+void verificar_scan(No* no) {
+    if (strcmp(no->tipo, "SCAN") == 0) {
+        const char* id = no->filhos[0]->valor;
+        if (!verificar_variavel_declarada(tabela, id)) {
+            char msg[100];
+            sprintf(msg, "Variável '%s' não foi declarada", id);
+            erro_semantico(msg, no->linha);
+        }
+    }
+}
+
+void verificar_return(No* no) {
+    if (strcmp(no->tipo, "RETURN") == 0) {
+        const char* tipo_retorno = inferir_tipo_expressao(no->filhos[0]);
+        const char* tipo_funcao = "int";  // Precisamos melhorar isso para pegar o tipo real da função
+        if (!verificar_compatibilidade_tipos(tipo_funcao, tipo_retorno)) {
+            char msg[200];
+            sprintf(msg, "Tipo de retorno incompatível: esperado '%s', encontrado '%s'", 
+                    tipo_funcao, tipo_retorno);
+            erro_semantico(msg, no->linha);
+        }
+    }
+}
+
+void verificar_operadores(No* no) {
+    if (strcmp(no->tipo, "OPERADOR") == 0) {
+        const char* tipo_esq = inferir_tipo_expressao(no->filhos[0]);
+        const char* tipo_dir = inferir_tipo_expressao(no->filhos[1]);
+
+        if (!tipo_esq || !tipo_dir) return;
+
+        if (strcmp(no->valor, "==") == 0 || strcmp(no->valor, "!=") == 0) {
+            verificar_operador_igualdade(tipo_esq, tipo_dir, no->linha);
+        }
+        else if (strcmp(no->valor, ">") == 0 || 
+                 strcmp(no->valor, "<") == 0 || 
+                 strcmp(no->valor, ">=") == 0 || 
+                 strcmp(no->valor, "<=") == 0) {
+            verificar_operador_relacional(tipo_esq, tipo_dir, no->linha);
+        }
+        else if (strcmp(no->valor, "+") == 0 || 
+                 strcmp(no->valor, "-") == 0 || 
+                 strcmp(no->valor, "*") == 0 || 
+                 strcmp(no->valor, "/") == 0) {
+            verificar_operador_aritmetico(tipo_esq, tipo_dir, no->linha);
+        }
+    }
+}
+
+void verificar_condicional(No* no) {
+    if (strcmp(no->tipo, "IF") == 0 || strcmp(no->tipo, "IF_ELSE") == 0) {
+        const char* tipo_cond = inferir_tipo_expressao(no->filhos[0]);
+        if (tipo_cond && strcmp(tipo_cond, "char[]") == 0) {
+            erro_semantico("Não é possível usar string como condição em if", no->linha);
+        }
+    }
+}
+
+void verificar_repeticao(No* no) {
+    if (strcmp(no->tipo, "WHILE") == 0) {
+        const char* tipo_cond = inferir_tipo_expressao(no->filhos[0]);
+        if (tipo_cond && strcmp(tipo_cond, "char[]") == 0) {
+            erro_semantico("Não é possível usar string como condição em while", no->linha);
+        }
+    }
+    else if (strcmp(no->tipo, "FOR") == 0) {
+        const char* tipo_cond = inferir_tipo_expressao(no->filhos[1]);
+        if (tipo_cond && strcmp(tipo_cond, "char[]") == 0) {
+            erro_semantico("Não é possível usar string como condição do for", no->linha);
+        }
+        if (no->filhos[0] && strcmp(no->filhos[0]->tipo, "DECLARACAO_VAR") == 0) {
+            const char* tipo_id = no->filhos[0]->filhos[0]->valor;
+            const char* nome_id = no->filhos[0]->valor;
+            adicionar_simbolo(tabela, nome_id, tipo_id, "variavel", no->linha);
+        }
+    }
+}
 
 void analisar_no(No* no) {
     if (!no) return;
 
-    // Verifica o tipo do nó e faz as análises apropriadas
-    if (strcmp(no->tipo, "OPERADOR") == 0) {
-        verificar_tipo_operacao(no);
-    }
-    else if (strcmp(no->tipo, "ACESSO_VETOR") == 0) {
-        verificar_acesso_vetor(no);
-    }
-    
-    // Continua a análise nos filhos
     for (int i = 0; i < no->num_filhos; i++) {
         analisar_no(no->filhos[i]);
     }
+
+    verificar_declaracoes(no);
+    verificar_identificador(no);
+    verificar_atribuicao(no);
+    verificar_operadores(no);
+    verificar_condicional(no);
+    verificar_repeticao(no);
+    verificar_scan(no);
+    verificar_return(no);
 }
 
 void iniciar_analise_semantica(No* raiz) {
     if (!raiz) return;
-    
     criar_escopo();
-    
-    // Percorre a árvore fazendo as verificações
     analisar_no(raiz);
-    
-    // Verifica funções básicas necessárias (main)
-    if (!verificar_variavel_declarada(escopo_atual->tabela, "main")) {
-        erro_semantico("Função 'main' não declarada", 0);
-    }
-    
     liberar_escopo();
 }
 
@@ -2620,14 +2837,12 @@ int main(int argc, char** argv) {
     tabela = criar_tabela_simbolos();
     
     printf("\n=== Iniciando análise ===\n");
-    
     // Faz a análise léxica e sintática
     yyparse();
     
-    // Se não houver erros léxicos ou sintáticos, faz a análise semântica
     if (erros_lexicos == 0 && erros_sintaticos == 0) {
-        printf("\n=== Iniciando análise semântica ===\n");
-        iniciar_analise_semantica(raiz);
+    printf("\n=== Iniciando análise semântica ===\n"); // Ativa verificações semânticas
+    iniciar_analise_semantica(raiz);
     }
     
     printf("\n=== Resumo da análise ===\n");
