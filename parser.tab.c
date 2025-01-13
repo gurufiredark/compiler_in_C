@@ -642,13 +642,13 @@ static const yytype_int16 yyrline[] =
 {
        0,   118,   118,   129,   132,   140,   149,   154,   162,   166,
      173,   179,   187,   195,   205,   209,   213,   217,   221,   228,
-     236,   247,   250,   258,   263,   271,   279,   288,   291,   297,
-     306,   307,   308,   309,   310,   311,   312,   316,   324,   329,
-     334,   341,   348,   353,   361,   369,   374,   382,   386,   394,
-     399,   408,   414,   424,   433,   444,   450,   459,   465,   472,
-     481,   487,   493,   497,   501,   505,   510,   516,   522,   528,
-     534,   540,   546,   550,   555,   561,   567,   573,   579,   585,
-     591,   596,   601,   606,   611
+     236,   247,   250,   258,   263,   271,   279,   287,   290,   296,
+     305,   306,   307,   308,   309,   310,   311,   315,   323,   328,
+     333,   340,   347,   352,   360,   368,   373,   381,   385,   393,
+     398,   407,   413,   423,   432,   443,   449,   458,   464,   471,
+     480,   486,   492,   496,   500,   504,   509,   515,   521,   527,
+     533,   539,   545,   549,   554,   560,   566,   572,   578,   584,
+     590,   595,   600,   605,   610
 };
 #endif
 
@@ -1623,7 +1623,7 @@ yyreduce:
     break;
 
   case 27: /* comandos: %empty  */
-#line 288 "parser.y"
+#line 287 "parser.y"
     {
         (yyval.no) = criar_no("COMANDOS", "");
     }
@@ -1631,7 +1631,7 @@ yyreduce:
     break;
 
   case 28: /* comandos: comando comandos  */
-#line 292 "parser.y"
+#line 291 "parser.y"
     {
         (yyval.no) = criar_no("COMANDOS", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
@@ -1641,7 +1641,7 @@ yyreduce:
     break;
 
   case 29: /* comandos: declaracao_variavel comandos  */
-#line 298 "parser.y"
+#line 297 "parser.y"
     {
         (yyval.no) = criar_no("COMANDOS", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
@@ -1651,49 +1651,49 @@ yyreduce:
     break;
 
   case 30: /* comando: atribuicao  */
-#line 306 "parser.y"
+#line 305 "parser.y"
                { (yyval.no) = (yyvsp[0].no); }
 #line 1657 "parser.tab.c"
     break;
 
   case 31: /* comando: comando_if  */
-#line 307 "parser.y"
+#line 306 "parser.y"
                  { (yyval.no) = (yyvsp[0].no); }
 #line 1663 "parser.tab.c"
     break;
 
   case 32: /* comando: comando_while  */
-#line 308 "parser.y"
+#line 307 "parser.y"
                     { (yyval.no) = (yyvsp[0].no); }
 #line 1669 "parser.tab.c"
     break;
 
   case 33: /* comando: comando_for  */
-#line 309 "parser.y"
+#line 308 "parser.y"
                   { (yyval.no) = (yyvsp[0].no); }
 #line 1675 "parser.tab.c"
     break;
 
   case 34: /* comando: comando_print  */
-#line 310 "parser.y"
+#line 309 "parser.y"
                     { (yyval.no) = (yyvsp[0].no); }
 #line 1681 "parser.tab.c"
     break;
 
   case 35: /* comando: comando_scan  */
-#line 311 "parser.y"
+#line 310 "parser.y"
                    { (yyval.no) = (yyvsp[0].no); }
 #line 1687 "parser.tab.c"
     break;
 
   case 36: /* comando: return_stmt  */
-#line 312 "parser.y"
+#line 311 "parser.y"
                   { (yyval.no) = (yyvsp[0].no); }
 #line 1693 "parser.tab.c"
     break;
 
   case 37: /* return_stmt: RETURN expressao ';'  */
-#line 317 "parser.y"
+#line 316 "parser.y"
     {
         (yyval.no) = criar_no("RETURN", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
@@ -1702,7 +1702,7 @@ yyreduce:
     break;
 
   case 38: /* comando_print: PRINT '(' string_interpolada ')' ';'  */
-#line 325 "parser.y"
+#line 324 "parser.y"
     {
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
@@ -1711,7 +1711,7 @@ yyreduce:
     break;
 
   case 39: /* comando_print: PRINT '(' ID ')' ';'  */
-#line 330 "parser.y"
+#line 329 "parser.y"
     {
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-2].sval)));
@@ -1720,7 +1720,7 @@ yyreduce:
     break;
 
   case 40: /* comando_print: PRINT '(' NUM_INT ')' ';'  */
-#line 335 "parser.y"
+#line 334 "parser.y"
     {
         char valor[32];
         sprintf(valor, "%d", (yyvsp[-2].ival));
@@ -1731,7 +1731,7 @@ yyreduce:
     break;
 
   case 41: /* comando_print: PRINT '(' NUM_FLOAT ')' ';'  */
-#line 342 "parser.y"
+#line 341 "parser.y"
     {
         char valor[32];
         sprintf(valor, "%f", (yyvsp[-2].fval));
@@ -1742,7 +1742,7 @@ yyreduce:
     break;
 
   case 42: /* comando_print: PRINT '(' STRING ')' ';'  */
-#line 349 "parser.y"
+#line 348 "parser.y"
     {
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), criar_no("STRING", (yyvsp[-2].sval)));
@@ -1751,7 +1751,7 @@ yyreduce:
     break;
 
   case 43: /* comando_print: PRINT '(' CHAR ')' ';'  */
-#line 354 "parser.y"
+#line 353 "parser.y"
     {
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), criar_no("CHAR", (yyvsp[-2].sval)));
@@ -1760,7 +1760,7 @@ yyreduce:
     break;
 
   case 44: /* string_interpolada: STRING_START partes_string STRING_END  */
-#line 362 "parser.y"
+#line 361 "parser.y"
     {
         (yyval.no) = criar_no("STRING_INTERPOLADA", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
@@ -1769,7 +1769,7 @@ yyreduce:
     break;
 
   case 45: /* partes_string: parte_string  */
-#line 370 "parser.y"
+#line 369 "parser.y"
     {
         (yyval.no) = criar_no("PARTES_STRING", "");
         adicionar_filho((yyval.no), (yyvsp[0].no));
@@ -1778,7 +1778,7 @@ yyreduce:
     break;
 
   case 46: /* partes_string: parte_string partes_string  */
-#line 375 "parser.y"
+#line 374 "parser.y"
     {
         (yyval.no) = (yyvsp[0].no);
         adicionar_filho((yyval.no), (yyvsp[-1].no));
@@ -1787,7 +1787,7 @@ yyreduce:
     break;
 
   case 47: /* parte_string: STRING_TEXT  */
-#line 383 "parser.y"
+#line 382 "parser.y"
     {
         (yyval.no) = criar_no("TEXTO", (yyvsp[0].sval));
     }
@@ -1795,7 +1795,7 @@ yyreduce:
     break;
 
   case 48: /* parte_string: INTERPOLACAO_START ID INTERPOLACAO_END  */
-#line 387 "parser.y"
+#line 386 "parser.y"
     {
         (yyval.no) = criar_no("INTERPOLACAO", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-1].sval)));
@@ -1804,7 +1804,7 @@ yyreduce:
     break;
 
   case 49: /* comando_scan: SCAN '(' ID ')' ';'  */
-#line 395 "parser.y"
+#line 394 "parser.y"
     {
         (yyval.no) = criar_no("SCAN", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-2].sval)));
@@ -1813,7 +1813,7 @@ yyreduce:
     break;
 
   case 50: /* comando_scan: SCAN '(' ID '[' expressao ']' ')' ';'  */
-#line 400 "parser.y"
+#line 399 "parser.y"
     {
         (yyval.no) = criar_no("SCAN_VETOR", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-5].sval)));
@@ -1823,7 +1823,7 @@ yyreduce:
     break;
 
   case 51: /* comando_if: IF '(' expressao ')' bloco  */
-#line 409 "parser.y"
+#line 408 "parser.y"
     {
         (yyval.no) = criar_no("IF", "");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
@@ -1833,7 +1833,7 @@ yyreduce:
     break;
 
   case 52: /* comando_if: IF '(' expressao ')' bloco ELSE bloco  */
-#line 415 "parser.y"
+#line 414 "parser.y"
     {
         (yyval.no) = criar_no("IF_ELSE", "");
         adicionar_filho((yyval.no), (yyvsp[-4].no));
@@ -1844,7 +1844,7 @@ yyreduce:
     break;
 
   case 53: /* comando_while: WHILE '(' expressao ')' bloco  */
-#line 425 "parser.y"
+#line 424 "parser.y"
     {
         (yyval.no) = criar_no("WHILE", "");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
@@ -1854,7 +1854,7 @@ yyreduce:
     break;
 
   case 54: /* comando_for: FOR '(' atribuicao_for ';' expressao ';' expressao ')' bloco  */
-#line 434 "parser.y"
+#line 433 "parser.y"
     { 
         (yyval.no) = criar_no("FOR", "");
         adicionar_filho((yyval.no), (yyvsp[-6].no));
@@ -1866,7 +1866,7 @@ yyreduce:
     break;
 
   case 55: /* atribuicao_for: ID '=' expressao  */
-#line 445 "parser.y"
+#line 444 "parser.y"
     {
         (yyval.no) = criar_no("ATRIBUICAO", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-2].sval)));
@@ -1876,7 +1876,7 @@ yyreduce:
     break;
 
   case 56: /* atribuicao_for: tipo ID '=' expressao  */
-#line 451 "parser.y"
+#line 450 "parser.y"
     {
         (yyval.no) = criar_no("ATRIBUICAO", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-2].sval)));
@@ -1886,7 +1886,7 @@ yyreduce:
     break;
 
   case 57: /* atribuicao: ID '=' expressao ';'  */
-#line 460 "parser.y"
+#line 459 "parser.y"
     {
         (yyval.no) = criar_no("ATRIBUICAO", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-3].sval)));
@@ -1896,7 +1896,7 @@ yyreduce:
     break;
 
   case 58: /* atribuicao: ID '[' expressao ']' '=' expressao ';'  */
-#line 466 "parser.y"
+#line 465 "parser.y"
     {
         (yyval.no) = criar_no("ATRIBUICAO_VETOR", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-6].sval)));
@@ -1907,7 +1907,7 @@ yyreduce:
     break;
 
   case 59: /* atribuicao: ID '=' STRING ';'  */
-#line 473 "parser.y"
+#line 472 "parser.y"
     {
         (yyval.no) = criar_no("ATRIBUICAO_STRING", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-3].sval)));
@@ -1917,7 +1917,7 @@ yyreduce:
     break;
 
   case 60: /* expressao: NUM_INT  */
-#line 482 "parser.y"
+#line 481 "parser.y"
     {
         char valor[32];
         sprintf(valor, "%d", (yyvsp[0].ival));
@@ -1927,7 +1927,7 @@ yyreduce:
     break;
 
   case 61: /* expressao: NUM_FLOAT  */
-#line 488 "parser.y"
+#line 487 "parser.y"
     {
         char valor[32];
         sprintf(valor, "%f", (yyvsp[0].fval));
@@ -1937,7 +1937,7 @@ yyreduce:
     break;
 
   case 62: /* expressao: ID  */
-#line 494 "parser.y"
+#line 493 "parser.y"
     { 
         (yyval.no) = criar_no("ID", (yyvsp[0].sval));
     }
@@ -1945,7 +1945,7 @@ yyreduce:
     break;
 
   case 63: /* expressao: STRING  */
-#line 498 "parser.y"
+#line 497 "parser.y"
     { 
         (yyval.no) = criar_no("STRING", (yyvsp[0].sval));
     }
@@ -1953,7 +1953,7 @@ yyreduce:
     break;
 
   case 64: /* expressao: CHAR  */
-#line 502 "parser.y"
+#line 501 "parser.y"
     { 
         (yyval.no) = criar_no("CHAR", (yyvsp[0].sval));
     }
@@ -1961,7 +1961,7 @@ yyreduce:
     break;
 
   case 65: /* expressao: ID '[' expressao ']'  */
-#line 506 "parser.y"
+#line 505 "parser.y"
     {
         (yyval.no) = criar_no("ACESSO_VETOR", (yyvsp[-3].sval));
         adicionar_filho((yyval.no), (yyvsp[-1].no));
@@ -1970,7 +1970,7 @@ yyreduce:
     break;
 
   case 66: /* expressao: expressao '+' expressao  */
-#line 511 "parser.y"
+#line 510 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "+");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
@@ -1980,7 +1980,7 @@ yyreduce:
     break;
 
   case 67: /* expressao: expressao '-' expressao  */
-#line 517 "parser.y"
+#line 516 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "-");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
@@ -1990,7 +1990,7 @@ yyreduce:
     break;
 
   case 68: /* expressao: expressao '*' expressao  */
-#line 523 "parser.y"
+#line 522 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "*");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
@@ -2000,7 +2000,7 @@ yyreduce:
     break;
 
   case 69: /* expressao: expressao '/' expressao  */
-#line 529 "parser.y"
+#line 528 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "/");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
@@ -2010,7 +2010,7 @@ yyreduce:
     break;
 
   case 70: /* expressao: expressao MAIOR expressao  */
-#line 535 "parser.y"
+#line 534 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", ">");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
@@ -2020,7 +2020,7 @@ yyreduce:
     break;
 
   case 71: /* expressao: expressao MENOR expressao  */
-#line 541 "parser.y"
+#line 540 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "<");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
@@ -2030,7 +2030,7 @@ yyreduce:
     break;
 
   case 72: /* expressao: '(' expressao ')'  */
-#line 547 "parser.y"
+#line 546 "parser.y"
     {
         (yyval.no) = (yyvsp[-1].no);
     }
@@ -2038,7 +2038,7 @@ yyreduce:
     break;
 
   case 73: /* expressao: '-' expressao  */
-#line 551 "parser.y"
+#line 550 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR_UNARIO", "-");
         adicionar_filho((yyval.no), (yyvsp[0].no));
@@ -2047,7 +2047,7 @@ yyreduce:
     break;
 
   case 74: /* expressao: expressao IGUAL expressao  */
-#line 556 "parser.y"
+#line 555 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "==");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
@@ -2057,7 +2057,7 @@ yyreduce:
     break;
 
   case 75: /* expressao: expressao DIFERENTE expressao  */
-#line 562 "parser.y"
+#line 561 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "!=");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
@@ -2067,7 +2067,7 @@ yyreduce:
     break;
 
   case 76: /* expressao: expressao MENOR_IGUAL expressao  */
-#line 568 "parser.y"
+#line 567 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "<=");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
@@ -2077,7 +2077,7 @@ yyreduce:
     break;
 
   case 77: /* expressao: expressao MAIOR_IGUAL expressao  */
-#line 574 "parser.y"
+#line 573 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", ">=");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
@@ -2087,7 +2087,7 @@ yyreduce:
     break;
 
   case 78: /* expressao: expressao E expressao  */
-#line 580 "parser.y"
+#line 579 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "&&");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
@@ -2097,7 +2097,7 @@ yyreduce:
     break;
 
   case 79: /* expressao: expressao OU expressao  */
-#line 586 "parser.y"
+#line 585 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "||");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
@@ -2107,7 +2107,7 @@ yyreduce:
     break;
 
   case 80: /* expressao: NAO expressao  */
-#line 592 "parser.y"
+#line 591 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "!");
         adicionar_filho((yyval.no), (yyvsp[0].no));
@@ -2116,7 +2116,7 @@ yyreduce:
     break;
 
   case 81: /* expressao: INC expressao  */
-#line 597 "parser.y"
+#line 596 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR_PRE", "++");
         adicionar_filho((yyval.no), (yyvsp[0].no));
@@ -2125,7 +2125,7 @@ yyreduce:
     break;
 
   case 82: /* expressao: DEC expressao  */
-#line 602 "parser.y"
+#line 601 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR_PRE", "--");
         adicionar_filho((yyval.no), (yyvsp[0].no));
@@ -2134,7 +2134,7 @@ yyreduce:
     break;
 
   case 83: /* expressao: expressao INC  */
-#line 607 "parser.y"
+#line 606 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR_POS", "++");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
@@ -2143,7 +2143,7 @@ yyreduce:
     break;
 
   case 84: /* expressao: expressao DEC  */
-#line 612 "parser.y"
+#line 611 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR_POS", "--");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
@@ -2345,7 +2345,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 618 "parser.y"
+#line 617 "parser.y"
 
 
 //ARVORE
@@ -2494,11 +2494,9 @@ void liberar_escopo() {
 
 // Verificações semânticas principais
 void verificar_declaracao_duplicada(TabelaSimbolos* tabela, const char* nome, int linha) {
-    static int linha_anterior = -1;  // Para evitar repetições na mesma linha
     for (int i = 0; i < tabela->quantidade; i++) {
         if (strcmp(tabela->entradas[i].nome, nome) == 0 && 
-            linha_anterior != linha) {
-            linha_anterior = linha;
+            linha > tabela->entradas[i].linha) {  // Verifica se é uma declaração posterior
             char msg[100];
             sprintf(msg, "Identificador '%s' já declarado", nome);
             erro_semantico(msg, linha);
@@ -2547,7 +2545,7 @@ const char* inferir_tipo_expressao(No* expressao) {
     if (strcmp(expressao->tipo, "NUM_INT") == 0) return "int";
     if (strcmp(expressao->tipo, "NUM_FLOAT") == 0) return "float";
     if (strcmp(expressao->tipo, "CHAR") == 0) return "char";
-    if (strcmp(expressao->tipo, "STRING") == 0) return "char[]";
+    if (strcmp(expressao->tipo, "STRING") == 0) return "char[]";  // Mudança aqui
     
     // Para identificadores
     if (strcmp(expressao->tipo, "ID") == 0) {
@@ -2563,38 +2561,26 @@ const char* inferir_tipo_expressao(No* expressao) {
         const char* tipo_esq = inferir_tipo_expressao(expressao->filhos[0]);
         const char* tipo_dir = inferir_tipo_expressao(expressao->filhos[1]);
         
-        // Operações aritméticas
-        if (strcmp(expressao->valor, "+") == 0 || 
-            strcmp(expressao->valor, "-") == 0 || 
-            strcmp(expressao->valor, "*") == 0 || 
-            strcmp(expressao->valor, "/") == 0) {
-            if (tipo_esq && tipo_dir && is_tipo_numerico(tipo_esq) && is_tipo_numerico(tipo_dir)) {
-                return tipo_esq; // Retorna o tipo do operando esquerdo
-            }
+        if (strcmp(expressao->valor, "==") == 0 || 
+            strcmp(expressao->valor, "!=") == 0 ||
+            strcmp(expressao->valor, ">") == 0 || 
+            strcmp(expressao->valor, "<") == 0 || 
+            strcmp(expressao->valor, ">=") == 0 || 
+            strcmp(expressao->valor, "<=") == 0) {
+            return "int";  // Comparações sempre retornam int
         }
         
-        // Operações de comparação
-        else if (strcmp(expressao->valor, ">") == 0 || 
-                 strcmp(expressao->valor, "<") == 0 || 
-                 strcmp(expressao->valor, ">=") == 0 || 
-                 strcmp(expressao->valor, "<=") == 0 ||
-                 strcmp(expressao->valor, "==") == 0 || 
-                 strcmp(expressao->valor, "!=") == 0) {
-            return "int"; // Comparações sempre retornam int (0 ou 1)
+        if (tipo_esq && tipo_dir) {
+            if (strcmp(tipo_esq, "int") == 0 && strcmp(tipo_dir, "int") == 0) return "int";
+            if (strcmp(tipo_esq, "float") == 0 || strcmp(tipo_dir, "float") == 0) return "float";
         }
-    }
-
-    // Para expressões unárias
-    if (strcmp(expressao->tipo, "OPERADOR_UNARIO") == 0) {
-        return inferir_tipo_expressao(expressao->filhos[0]);
     }
 
     return NULL;
 }
 
 void verificar_tipo_operacao(No* no) {
-    if (!no || !no->tipo || no->verificado) return;
-    no->verificado = 1;
+    if (!no || !no->tipo) return;
 
     if (strcmp(no->tipo, "OPERADOR") == 0) {
         const char* tipo_esq = inferir_tipo_expressao(no->filhos[0]);
@@ -2608,6 +2594,39 @@ void verificar_tipo_operacao(No* no) {
                 (is_tipo_numerico(tipo_esq) && strcmp(tipo_dir, "char[]") == 0)) {
                 erro_semantico("Não é possível comparar strings com tipos numéricos", no->linha);
             }
+        }
+        // Comparações relacionais (>, <, >=, <=)
+        else if (strcmp(no->valor, ">") == 0 || 
+                 strcmp(no->valor, "<") == 0 || 
+                 strcmp(no->valor, ">=") == 0 || 
+                 strcmp(no->valor, "<=") == 0) {
+            if (strcmp(tipo_esq, "char[]") == 0 || strcmp(tipo_dir, "char[]") == 0) {
+                erro_semantico("Não é possível usar strings em comparações relacionais", no->linha);
+            }
+            else if ((strcmp(tipo_esq, "char") == 0 && strcmp(tipo_dir, "int") == 0) ||
+                     (strcmp(tipo_esq, "int") == 0 && strcmp(tipo_dir, "char") == 0)) {
+                erro_semantico("Comparação relacional inválida entre tipos 'char' e 'int'", no->linha);
+            }
+        }
+    }
+}
+
+/* void verificar_tipo_operacao(No* no) {
+    if (!no || !no->tipo || no->verificado) return;
+    no->verificado = 1;
+
+    if (strcmp(no->tipo, "OPERADOR") == 0) {
+        const char* tipo_esq = inferir_tipo_expressao(no->filhos[0]);
+        const char* tipo_dir = inferir_tipo_expressao(no->filhos[1]);
+
+        if (!tipo_esq || !tipo_dir) return;
+
+        // Comparações de igualdade (== e !=)
+        if (strcmp(no->valor, "==") == 0 || strcmp(no->valor, "!=") == 0) {
+            if ((strcmp(tipo_esq, "string") == 0 && is_tipo_numerico(tipo_dir)) || 
+                (is_tipo_numerico(tipo_esq) && strcmp(tipo_dir, "string") == 0)) {
+                erro_semantico("Não é possível comparar strings com tipos numéricos", no->linha);
+            }
             else if (!verificar_compatibilidade_tipos(tipo_esq, tipo_dir)) {
                 char msg[200];
                 sprintf(msg, "Comparação de igualdade inválida entre tipos '%s' e '%s'", tipo_esq, tipo_dir);
@@ -2619,7 +2638,7 @@ void verificar_tipo_operacao(No* no) {
                  strcmp(no->valor, "<") == 0 || 
                  strcmp(no->valor, ">=") == 0 || 
                  strcmp(no->valor, "<=") == 0) {
-            if (strcmp(tipo_esq, "char[]") == 0 || strcmp(tipo_dir, "char[]") == 0) {
+            if (strcmp(tipo_esq, "string") == 0 || strcmp(tipo_dir, "string") == 0) {
                 erro_semantico("Não é possível usar strings em comparações relacionais", no->linha);
             }
             else if (!is_tipo_numerico(tipo_esq) || !is_tipo_numerico(tipo_dir)) {
@@ -2645,7 +2664,7 @@ void verificar_tipo_operacao(No* no) {
             }
         }
     }
-}
+} */
 
 void verificar_acesso_vetor(No* no) {
     if (!no || strcmp(no->tipo, "ACESSO_VETOR") != 0) return;
@@ -2661,27 +2680,11 @@ void verificar_declaracoes(No* no) {
 }
 
 void verificar_identificador(No* no) {
-    // Verifica se o identificador está em um FOR
-    No* atual = no->pai;
-    while (atual != NULL) {
-        if (strcmp(atual->tipo, "FOR") == 0) {
-            // Se o ID é o primeiro filho de uma atribuição que é o primeiro filho do FOR
-            if (atual->filhos[0] && strcmp(atual->filhos[0]->tipo, "ATRIBUICAO") == 0 &&
-                atual->filhos[0]->filhos[0] && strcmp(atual->filhos[0]->filhos[0]->valor, no->valor) == 0) {
-                return; // É a variável de controle do FOR, não precisa verificar
-            }
-        }
-        atual = atual->pai;
-    }
-
-    static int linhas_verificadas[1000] = {0};
-    if (linhas_verificadas[no->linha] == 0) {
-        linhas_verificadas[no->linha] = 1;
-        if (!verificar_variavel_declarada(tabela, no->valor)) {
-            char msg[100];
-            sprintf(msg, "Variável '%s' não foi declarada", no->valor);
-            erro_semantico(msg, no->linha);
-        }
+    // Verifica se a variável está declarada
+    if (!verificar_variavel_declarada(tabela, no->valor)) {
+        char msg[100];
+        sprintf(msg, "Variável '%s' não foi declarada", no->valor);
+        erro_semantico(msg, no->linha);
     }
 }
 
@@ -2706,8 +2709,8 @@ void verificar_atribuicao(No* no) {
 }
 
 void verificar_operador_igualdade(const char* tipo_esq, const char* tipo_dir, int linha) {
-    if ((strcmp(tipo_esq, "char[]") == 0 && is_tipo_numerico(tipo_dir)) || 
-        (is_tipo_numerico(tipo_esq) && strcmp(tipo_dir, "char[]") == 0)) {
+    if ((strcmp(tipo_esq, "string") == 0 && is_tipo_numerico(tipo_dir)) || 
+        (is_tipo_numerico(tipo_esq) && strcmp(tipo_dir, "string") == 0)) {
         erro_semantico("Não é possível comparar strings com tipos numéricos", linha);
     }
     else if (!verificar_compatibilidade_tipos(tipo_esq, tipo_dir)) {
@@ -2747,8 +2750,9 @@ void verificar_scan(No* no) {
 void verificar_return(No* no) {
     if (strcmp(no->tipo, "RETURN") == 0) {
         const char* tipo_retorno = inferir_tipo_expressao(no->filhos[0]);
-        const char* tipo_funcao = "int";  // Precisamos melhorar isso para pegar o tipo real da função
-        if (!verificar_compatibilidade_tipos(tipo_funcao, tipo_retorno)) {
+        const char* tipo_funcao = "int";  // Para o exemplo, assumimos que é uma função int
+        
+        if (tipo_retorno && strcmp(tipo_retorno, tipo_funcao) != 0) {
             char msg[200];
             sprintf(msg, "Tipo de retorno incompatível: esperado '%s', encontrado '%s'", 
                     tipo_funcao, tipo_retorno);
@@ -2785,7 +2789,7 @@ void verificar_operadores(No* no) {
 void verificar_condicional(No* no) {
     if (strcmp(no->tipo, "IF") == 0 || strcmp(no->tipo, "IF_ELSE") == 0) {
         const char* tipo_cond = inferir_tipo_expressao(no->filhos[0]);
-        if (tipo_cond && strcmp(tipo_cond, "char[]") == 0) {
+        if (tipo_cond && strcmp(tipo_cond, "string") == 0) {
             erro_semantico("Não é possível usar string como condição em if", no->linha);
         }
     }
@@ -2797,25 +2801,23 @@ void verificar_repeticao(No* no) {
         if (!cond_no) return;
         
         const char* tipo_cond = inferir_tipo_expressao(cond_no);
-        if (tipo_cond && strcmp(tipo_cond, "char[]") == 0) {
+        if (tipo_cond && strcmp(tipo_cond, "string") == 0) {
             erro_semantico("Não é possível usar string como condição", no->linha);
         }
     }
 }
 
 void analisar_no(No* no) {
-    if (!no || no->verificado) return;
-    no->verificado = 1;
+    if (!no) return;
     
-    // Primeiro analisa os filhos
-    for (int i = 0; i < no->num_filhos; i++) {
-        analisar_no(no->filhos[i]);
+    // Primeiro analisa o nó atual antes de seus filhos
+    if (strcmp(no->tipo, "OPERADOR") == 0) {
+        verificar_tipo_operacao(no);
     }
-    
-    // Depois analisa o nó atual
-    if (strcmp(no->tipo, "ID") == 0) {
+    else if (strcmp(no->tipo, "ID") == 0) {
         No* pai = no->pai;
-        if (pai && strcmp(pai->tipo, "DECLARACAO_VAR") != 0 && 
+        if (pai && 
+            strcmp(pai->tipo, "DECLARACAO_VAR") != 0 && 
             strcmp(pai->tipo, "PARAMETRO") != 0) {
             verificar_identificador(no);
         }
@@ -2823,22 +2825,16 @@ void analisar_no(No* no) {
     else if (strcmp(no->tipo, "ATRIBUICAO") == 0) {
         verificar_atribuicao(no);
     }
-    else if (strcmp(no->tipo, "OPERADOR") == 0) {
-        verificar_tipo_operacao(no);
+    else if (strcmp(no->tipo, "RETURN") == 0) {
+        verificar_return(no);
     }
-    else if (strcmp(no->tipo, "IF") == 0 || strcmp(no->tipo, "IF_ELSE") == 0) {
-        verificar_condicional(no);
-    }
-    else if (strcmp(no->tipo, "WHILE") == 0 || strcmp(no->tipo, "FOR") == 0) {
-        if (!no->verificado) {
-            verificar_repeticao(no);
-        }
-    }
-    else if (strcmp(no->tipo, "SCAN") == 0 && !no->verificado) {
+    else if (strcmp(no->tipo, "SCAN") == 0) {
         verificar_scan(no);
     }
-    else if (strcmp(no->tipo, "RETURN") == 0 && !no->verificado) {
-        verificar_return(no);
+
+    // Depois analisa os filhos
+    for (int i = 0; i < no->num_filhos; i++) {
+        analisar_no(no->filhos[i]);
     }
 }
 
