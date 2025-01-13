@@ -84,6 +84,7 @@ typedef struct No {
     int linha;
     struct No* pai;
     struct No** filhos;
+    int verificado;
 } No;
 
 typedef struct {
@@ -141,7 +142,7 @@ int yylex();
 No* raiz = NULL;
 
 
-#line 145 "parser.tab.c"
+#line 146 "parser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -639,15 +640,15 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   117,   117,   128,   131,   139,   148,   153,   161,   165,
-     172,   178,   186,   194,   204,   208,   212,   216,   220,   227,
-     235,   246,   249,   257,   262,   270,   278,   287,   290,   296,
-     305,   306,   307,   308,   309,   310,   311,   315,   323,   328,
-     333,   340,   347,   352,   360,   368,   373,   381,   385,   393,
-     398,   407,   413,   423,   433,   444,   450,   454,   460,   467,
-     476,   482,   488,   492,   496,   500,   505,   511,   517,   523,
-     529,   535,   541,   545,   550,   556,   562,   568,   574,   580,
-     586,   591,   596,   601,   606
+       0,   118,   118,   129,   132,   140,   149,   154,   162,   166,
+     173,   179,   187,   195,   205,   209,   213,   217,   221,   228,
+     236,   247,   250,   258,   263,   271,   279,   288,   291,   297,
+     306,   307,   308,   309,   310,   311,   312,   316,   324,   329,
+     334,   341,   348,   353,   361,   369,   374,   382,   386,   394,
+     399,   408,   414,   424,   433,   444,   450,   459,   465,   472,
+     481,   487,   493,   497,   501,   505,   510,   516,   522,   528,
+     534,   540,   546,   550,   555,   561,   567,   573,   579,   585,
+     591,   596,   601,   606,   611
 };
 #endif
 
@@ -1389,89 +1390,89 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* programa: includes declaracoes  */
-#line 118 "parser.y"
+#line 119 "parser.y"
     {
         (yyval.no) = criar_no("PROGRAMA", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
         raiz = (yyval.no);
     }
-#line 1400 "parser.tab.c"
+#line 1401 "parser.tab.c"
     break;
 
   case 3: /* includes: %empty  */
-#line 128 "parser.y"
+#line 129 "parser.y"
     {
         (yyval.no) = criar_no("INCLUDES", "");
     }
-#line 1408 "parser.tab.c"
+#line 1409 "parser.tab.c"
     break;
 
   case 4: /* includes: includes include_stmt  */
-#line 132 "parser.y"
+#line 133 "parser.y"
     {
         (yyval.no) = (yyvsp[0].no);
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1417 "parser.tab.c"
+#line 1418 "parser.tab.c"
     break;
 
   case 5: /* include_stmt: '#' INCLUDE MENOR ID '.' ID MAIOR  */
-#line 140 "parser.y"
+#line 141 "parser.y"
     {
         char include_name[100];
         sprintf(include_name, "%s.%s", (yyvsp[-3].sval), (yyvsp[-1].sval));
         (yyval.no) = criar_no("INCLUDE", include_name);
     }
-#line 1427 "parser.tab.c"
+#line 1428 "parser.tab.c"
     break;
 
   case 6: /* declaracoes: declaracao  */
-#line 149 "parser.y"
+#line 150 "parser.y"
     { 
         (yyval.no) = criar_no("DECLARACOES", "");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1436 "parser.tab.c"
+#line 1437 "parser.tab.c"
     break;
 
   case 7: /* declaracoes: declaracao declaracoes  */
-#line 154 "parser.y"
+#line 155 "parser.y"
     {
         (yyval.no) = (yyvsp[0].no);
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1445 "parser.tab.c"
+#line 1446 "parser.tab.c"
     break;
 
   case 8: /* declaracao: declaracao_variavel  */
-#line 162 "parser.y"
+#line 163 "parser.y"
     { 
         (yyval.no) = (yyvsp[0].no);
     }
-#line 1453 "parser.tab.c"
+#line 1454 "parser.tab.c"
     break;
 
   case 9: /* declaracao: declaracao_funcao  */
-#line 166 "parser.y"
+#line 167 "parser.y"
     { 
         (yyval.no) = (yyvsp[0].no);
     }
-#line 1461 "parser.tab.c"
+#line 1462 "parser.tab.c"
     break;
 
   case 10: /* declaracao_variavel: tipo ID ';'  */
-#line 173 "parser.y"
+#line 174 "parser.y"
     {
         (yyval.no) = criar_no("DECLARACAO_VAR", (yyvsp[-1].sval));
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_simbolo(tabela, (yyvsp[-1].sval), (yyvsp[-2].no)->valor, "variavel", linha);
     }
-#line 1471 "parser.tab.c"
+#line 1472 "parser.tab.c"
     break;
 
   case 11: /* declaracao_variavel: tipo ID '[' NUM_INT ']' ';'  */
-#line 179 "parser.y"
+#line 180 "parser.y"
     {
         char temp[32];
         sprintf(temp, "%s[%d]", (yyvsp[-4].sval), (yyvsp[-2].ival));
@@ -1479,11 +1480,11 @@ yyreduce:
         adicionar_filho((yyval.no), (yyvsp[-5].no));
         adicionar_simbolo(tabela, (yyvsp[-4].sval), (yyvsp[-5].no)->valor, "variavel", linha);
     }
-#line 1483 "parser.tab.c"
+#line 1484 "parser.tab.c"
     break;
 
   case 12: /* declaracao_variavel: tipo ID '[' ']' ';'  */
-#line 187 "parser.y"
+#line 188 "parser.y"
     {
         char temp[32];
         sprintf(temp, "%s[]", (yyvsp[-3].sval));
@@ -1491,62 +1492,62 @@ yyreduce:
         adicionar_filho((yyval.no), (yyvsp[-4].no));
         adicionar_simbolo(tabela, (yyvsp[-3].sval), (yyvsp[-4].no)->valor, "variavel", linha);
     }
-#line 1495 "parser.tab.c"
+#line 1496 "parser.tab.c"
     break;
 
   case 13: /* declaracao_variavel: tipo ID '[' ']' '=' STRING ';'  */
-#line 195 "parser.y"
+#line 196 "parser.y"
     {
         (yyval.no) = criar_no("DECLARACAO_STRING", (yyvsp[-5].sval));
         adicionar_filho((yyval.no), (yyvsp[-6].no));
         adicionar_filho((yyval.no), criar_no("STRING", (yyvsp[-1].sval)));
         adicionar_simbolo(tabela, (yyvsp[-5].sval), (yyvsp[-6].no)->valor, "variavel", linha);
     }
-#line 1506 "parser.tab.c"
+#line 1507 "parser.tab.c"
     break;
 
   case 14: /* tipo: TIPO_INT  */
-#line 205 "parser.y"
+#line 206 "parser.y"
     { 
         (yyval.no) = criar_no("TIPO", "int");
     }
-#line 1514 "parser.tab.c"
+#line 1515 "parser.tab.c"
     break;
 
   case 15: /* tipo: TIPO_FLOAT  */
-#line 209 "parser.y"
+#line 210 "parser.y"
     { 
         (yyval.no) = criar_no("TIPO", "float");
     }
-#line 1522 "parser.tab.c"
+#line 1523 "parser.tab.c"
     break;
 
   case 16: /* tipo: TIPO_CHAR  */
-#line 213 "parser.y"
+#line 214 "parser.y"
     { 
         (yyval.no) = criar_no("TIPO", "char");
     }
-#line 1530 "parser.tab.c"
+#line 1531 "parser.tab.c"
     break;
 
   case 17: /* tipo: TIPO_STRING  */
-#line 217 "parser.y"
+#line 218 "parser.y"
     { 
         (yyval.no) = criar_no("TIPO", "string");
     }
-#line 1538 "parser.tab.c"
+#line 1539 "parser.tab.c"
     break;
 
   case 18: /* tipo: VOID  */
-#line 221 "parser.y"
+#line 222 "parser.y"
     { 
         (yyval.no) = criar_no("TIPO", "void");
     }
-#line 1546 "parser.tab.c"
+#line 1547 "parser.tab.c"
     break;
 
   case 19: /* declaracao_funcao: tipo ID '(' parametros ')' bloco  */
-#line 228 "parser.y"
+#line 229 "parser.y"
     {
         (yyval.no) = criar_no("FUNCAO", (yyvsp[-4].sval));
         adicionar_filho((yyval.no), (yyvsp[-5].no));
@@ -1554,301 +1555,300 @@ yyreduce:
         adicionar_filho((yyval.no), (yyvsp[0].no));
         adicionar_simbolo(tabela, (yyvsp[-4].sval), (yyvsp[-5].no)->valor, "funcao", linha);
     }
-#line 1558 "parser.tab.c"
+#line 1559 "parser.tab.c"
     break;
 
   case 20: /* declaracao_funcao: tipo MAIN '(' ')' bloco  */
-#line 236 "parser.y"
+#line 237 "parser.y"
     {
         (yyval.no) = criar_no("FUNCAO", "main");
         adicionar_filho((yyval.no), (yyvsp[-4].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
         adicionar_simbolo(tabela, "main", (yyvsp[-4].no)->valor, "funcao", linha);
     }
-#line 1569 "parser.tab.c"
+#line 1570 "parser.tab.c"
     break;
 
   case 21: /* parametros: %empty  */
-#line 246 "parser.y"
+#line 247 "parser.y"
     {
         (yyval.no) = criar_no("PARAMETROS", "");
     }
-#line 1577 "parser.tab.c"
+#line 1578 "parser.tab.c"
     break;
 
   case 22: /* parametros: lista_parametros  */
-#line 250 "parser.y"
+#line 251 "parser.y"
     {
         (yyval.no) = criar_no("PARAMETROS", "");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1586 "parser.tab.c"
+#line 1587 "parser.tab.c"
     break;
 
   case 23: /* lista_parametros: parametro  */
-#line 258 "parser.y"
+#line 259 "parser.y"
     {
         (yyval.no) = criar_no("LISTA_PARAMETROS", "");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1595 "parser.tab.c"
+#line 1596 "parser.tab.c"
     break;
 
   case 24: /* lista_parametros: parametro ',' lista_parametros  */
-#line 263 "parser.y"
+#line 264 "parser.y"
     {
         (yyval.no) = (yyvsp[0].no);
         adicionar_filho((yyval.no), (yyvsp[-2].no));
     }
-#line 1604 "parser.tab.c"
+#line 1605 "parser.tab.c"
     break;
 
   case 25: /* parametro: tipo ID  */
-#line 271 "parser.y"
+#line 272 "parser.y"
     {
         (yyval.no) = criar_no("PARAMETRO", (yyvsp[0].sval));
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1613 "parser.tab.c"
+#line 1614 "parser.tab.c"
     break;
 
   case 26: /* bloco: '{' comandos '}'  */
-#line 279 "parser.y"
+#line 280 "parser.y"
     {
         (yyval.no) = criar_no("BLOCO", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1622 "parser.tab.c"
+#line 1623 "parser.tab.c"
     break;
 
   case 27: /* comandos: %empty  */
-#line 287 "parser.y"
+#line 288 "parser.y"
     {
         (yyval.no) = criar_no("COMANDOS", "");
     }
-#line 1630 "parser.tab.c"
+#line 1631 "parser.tab.c"
     break;
 
   case 28: /* comandos: comando comandos  */
-#line 291 "parser.y"
+#line 292 "parser.y"
     {
         (yyval.no) = criar_no("COMANDOS", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1640 "parser.tab.c"
+#line 1641 "parser.tab.c"
     break;
 
   case 29: /* comandos: declaracao_variavel comandos  */
-#line 297 "parser.y"
+#line 298 "parser.y"
     {
         (yyval.no) = criar_no("COMANDOS", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1650 "parser.tab.c"
+#line 1651 "parser.tab.c"
     break;
 
   case 30: /* comando: atribuicao  */
-#line 305 "parser.y"
+#line 306 "parser.y"
                { (yyval.no) = (yyvsp[0].no); }
-#line 1656 "parser.tab.c"
+#line 1657 "parser.tab.c"
     break;
 
   case 31: /* comando: comando_if  */
-#line 306 "parser.y"
+#line 307 "parser.y"
                  { (yyval.no) = (yyvsp[0].no); }
-#line 1662 "parser.tab.c"
+#line 1663 "parser.tab.c"
     break;
 
   case 32: /* comando: comando_while  */
-#line 307 "parser.y"
+#line 308 "parser.y"
                     { (yyval.no) = (yyvsp[0].no); }
-#line 1668 "parser.tab.c"
+#line 1669 "parser.tab.c"
     break;
 
   case 33: /* comando: comando_for  */
-#line 308 "parser.y"
+#line 309 "parser.y"
                   { (yyval.no) = (yyvsp[0].no); }
-#line 1674 "parser.tab.c"
+#line 1675 "parser.tab.c"
     break;
 
   case 34: /* comando: comando_print  */
-#line 309 "parser.y"
+#line 310 "parser.y"
                     { (yyval.no) = (yyvsp[0].no); }
-#line 1680 "parser.tab.c"
+#line 1681 "parser.tab.c"
     break;
 
   case 35: /* comando: comando_scan  */
-#line 310 "parser.y"
+#line 311 "parser.y"
                    { (yyval.no) = (yyvsp[0].no); }
-#line 1686 "parser.tab.c"
+#line 1687 "parser.tab.c"
     break;
 
   case 36: /* comando: return_stmt  */
-#line 311 "parser.y"
+#line 312 "parser.y"
                   { (yyval.no) = (yyvsp[0].no); }
-#line 1692 "parser.tab.c"
+#line 1693 "parser.tab.c"
     break;
 
   case 37: /* return_stmt: RETURN expressao ';'  */
-#line 316 "parser.y"
+#line 317 "parser.y"
     {
         (yyval.no) = criar_no("RETURN", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1701 "parser.tab.c"
+#line 1702 "parser.tab.c"
     break;
 
   case 38: /* comando_print: PRINT '(' string_interpolada ')' ';'  */
-#line 324 "parser.y"
+#line 325 "parser.y"
     {
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
     }
-#line 1710 "parser.tab.c"
+#line 1711 "parser.tab.c"
     break;
 
   case 39: /* comando_print: PRINT '(' ID ')' ';'  */
-#line 329 "parser.y"
+#line 330 "parser.y"
     {
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-2].sval)));
     }
-#line 1719 "parser.tab.c"
+#line 1720 "parser.tab.c"
     break;
 
   case 40: /* comando_print: PRINT '(' NUM_INT ')' ';'  */
-#line 334 "parser.y"
+#line 335 "parser.y"
     {
         char valor[32];
         sprintf(valor, "%d", (yyvsp[-2].ival));
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), criar_no("NUM_INT", valor));
     }
-#line 1730 "parser.tab.c"
+#line 1731 "parser.tab.c"
     break;
 
   case 41: /* comando_print: PRINT '(' NUM_FLOAT ')' ';'  */
-#line 341 "parser.y"
+#line 342 "parser.y"
     {
         char valor[32];
         sprintf(valor, "%f", (yyvsp[-2].fval));
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), criar_no("NUM_FLOAT", valor));
     }
-#line 1741 "parser.tab.c"
+#line 1742 "parser.tab.c"
     break;
 
   case 42: /* comando_print: PRINT '(' STRING ')' ';'  */
-#line 348 "parser.y"
+#line 349 "parser.y"
     {
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), criar_no("STRING", (yyvsp[-2].sval)));
     }
-#line 1750 "parser.tab.c"
+#line 1751 "parser.tab.c"
     break;
 
   case 43: /* comando_print: PRINT '(' CHAR ')' ';'  */
-#line 353 "parser.y"
+#line 354 "parser.y"
     {
         (yyval.no) = criar_no("PRINT", "");
         adicionar_filho((yyval.no), criar_no("CHAR", (yyvsp[-2].sval)));
     }
-#line 1759 "parser.tab.c"
+#line 1760 "parser.tab.c"
     break;
 
   case 44: /* string_interpolada: STRING_START partes_string STRING_END  */
-#line 361 "parser.y"
+#line 362 "parser.y"
     {
         (yyval.no) = criar_no("STRING_INTERPOLADA", "");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1768 "parser.tab.c"
+#line 1769 "parser.tab.c"
     break;
 
   case 45: /* partes_string: parte_string  */
-#line 369 "parser.y"
+#line 370 "parser.y"
     {
         (yyval.no) = criar_no("PARTES_STRING", "");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1777 "parser.tab.c"
+#line 1778 "parser.tab.c"
     break;
 
   case 46: /* partes_string: parte_string partes_string  */
-#line 374 "parser.y"
+#line 375 "parser.y"
     {
         (yyval.no) = (yyvsp[0].no);
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1786 "parser.tab.c"
+#line 1787 "parser.tab.c"
     break;
 
   case 47: /* parte_string: STRING_TEXT  */
-#line 382 "parser.y"
+#line 383 "parser.y"
     {
         (yyval.no) = criar_no("TEXTO", (yyvsp[0].sval));
     }
-#line 1794 "parser.tab.c"
+#line 1795 "parser.tab.c"
     break;
 
   case 48: /* parte_string: INTERPOLACAO_START ID INTERPOLACAO_END  */
-#line 386 "parser.y"
+#line 387 "parser.y"
     {
         (yyval.no) = criar_no("INTERPOLACAO", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-1].sval)));
     }
-#line 1803 "parser.tab.c"
+#line 1804 "parser.tab.c"
     break;
 
   case 49: /* comando_scan: SCAN '(' ID ')' ';'  */
-#line 394 "parser.y"
+#line 395 "parser.y"
     {
         (yyval.no) = criar_no("SCAN", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-2].sval)));
     }
-#line 1812 "parser.tab.c"
+#line 1813 "parser.tab.c"
     break;
 
   case 50: /* comando_scan: SCAN '(' ID '[' expressao ']' ')' ';'  */
-#line 399 "parser.y"
+#line 400 "parser.y"
     {
         (yyval.no) = criar_no("SCAN_VETOR", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-5].sval)));
         adicionar_filho((yyval.no), (yyvsp[-3].no));  /* índice do vetor */
     }
-#line 1822 "parser.tab.c"
+#line 1823 "parser.tab.c"
     break;
 
   case 51: /* comando_if: IF '(' expressao ')' bloco  */
-#line 408 "parser.y"
+#line 409 "parser.y"
     {
         (yyval.no) = criar_no("IF", "");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1832 "parser.tab.c"
+#line 1833 "parser.tab.c"
     break;
 
   case 52: /* comando_if: IF '(' expressao ')' bloco ELSE bloco  */
-#line 414 "parser.y"
+#line 415 "parser.y"
     {
         (yyval.no) = criar_no("IF_ELSE", "");
         adicionar_filho((yyval.no), (yyvsp[-4].no));
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 1843 "parser.tab.c"
+#line 1844 "parser.tab.c"
     break;
 
   case 53: /* comando_while: WHILE '(' expressao ')' bloco  */
-#line 424 "parser.y"
+#line 425 "parser.y"
     {
         (yyval.no) = criar_no("WHILE", "");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
-        verificar_tipo_operacao((yyvsp[-2].no));
     }
 #line 1854 "parser.tab.c"
     break;
@@ -1875,274 +1875,284 @@ yyreduce:
 #line 1876 "parser.tab.c"
     break;
 
+  case 56: /* atribuicao_for: tipo ID '=' expressao  */
+#line 451 "parser.y"
+    {
+        (yyval.no) = criar_no("ATRIBUICAO", "");
+        adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-2].sval)));
+        adicionar_filho((yyval.no), (yyvsp[0].no));
+    }
+#line 1886 "parser.tab.c"
+    break;
+
   case 57: /* atribuicao: ID '=' expressao ';'  */
-#line 455 "parser.y"
+#line 460 "parser.y"
     {
         (yyval.no) = criar_no("ATRIBUICAO", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-3].sval)));
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1886 "parser.tab.c"
+#line 1896 "parser.tab.c"
     break;
 
   case 58: /* atribuicao: ID '[' expressao ']' '=' expressao ';'  */
-#line 461 "parser.y"
+#line 466 "parser.y"
     {
         (yyval.no) = criar_no("ATRIBUICAO_VETOR", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-6].sval)));
         adicionar_filho((yyval.no), (yyvsp[-4].no));  // índice
         adicionar_filho((yyval.no), (yyvsp[-1].no));  // valor
     }
-#line 1897 "parser.tab.c"
+#line 1907 "parser.tab.c"
     break;
 
   case 59: /* atribuicao: ID '=' STRING ';'  */
-#line 468 "parser.y"
+#line 473 "parser.y"
     {
         (yyval.no) = criar_no("ATRIBUICAO_STRING", "");
         adicionar_filho((yyval.no), criar_no("ID", (yyvsp[-3].sval)));
         adicionar_filho((yyval.no), criar_no("STRING", (yyvsp[-1].sval)));
     }
-#line 1907 "parser.tab.c"
+#line 1917 "parser.tab.c"
     break;
 
   case 60: /* expressao: NUM_INT  */
-#line 477 "parser.y"
+#line 482 "parser.y"
     {
         char valor[32];
         sprintf(valor, "%d", (yyvsp[0].ival));
         (yyval.no) = criar_no("NUM_INT", valor);
     }
-#line 1917 "parser.tab.c"
+#line 1927 "parser.tab.c"
     break;
 
   case 61: /* expressao: NUM_FLOAT  */
-#line 483 "parser.y"
+#line 488 "parser.y"
     {
         char valor[32];
         sprintf(valor, "%f", (yyvsp[0].fval));
         (yyval.no) = criar_no("NUM_FLOAT", valor);
     }
-#line 1927 "parser.tab.c"
+#line 1937 "parser.tab.c"
     break;
 
   case 62: /* expressao: ID  */
-#line 489 "parser.y"
+#line 494 "parser.y"
     { 
         (yyval.no) = criar_no("ID", (yyvsp[0].sval));
     }
-#line 1935 "parser.tab.c"
+#line 1945 "parser.tab.c"
     break;
 
   case 63: /* expressao: STRING  */
-#line 493 "parser.y"
+#line 498 "parser.y"
     { 
         (yyval.no) = criar_no("STRING", (yyvsp[0].sval));
     }
-#line 1943 "parser.tab.c"
+#line 1953 "parser.tab.c"
     break;
 
   case 64: /* expressao: CHAR  */
-#line 497 "parser.y"
+#line 502 "parser.y"
     { 
         (yyval.no) = criar_no("CHAR", (yyvsp[0].sval));
     }
-#line 1951 "parser.tab.c"
+#line 1961 "parser.tab.c"
     break;
 
   case 65: /* expressao: ID '[' expressao ']'  */
-#line 501 "parser.y"
+#line 506 "parser.y"
     {
         (yyval.no) = criar_no("ACESSO_VETOR", (yyvsp[-3].sval));
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 1960 "parser.tab.c"
-    break;
-
-  case 66: /* expressao: expressao '+' expressao  */
-#line 506 "parser.y"
-    {
-        (yyval.no) = criar_no("OPERADOR", "+");
-        adicionar_filho((yyval.no), (yyvsp[-2].no));
-        adicionar_filho((yyval.no), (yyvsp[0].no));
-    }
 #line 1970 "parser.tab.c"
     break;
 
-  case 67: /* expressao: expressao '-' expressao  */
-#line 512 "parser.y"
+  case 66: /* expressao: expressao '+' expressao  */
+#line 511 "parser.y"
     {
-        (yyval.no) = criar_no("OPERADOR", "-");
+        (yyval.no) = criar_no("OPERADOR", "+");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
 #line 1980 "parser.tab.c"
     break;
 
-  case 68: /* expressao: expressao '*' expressao  */
-#line 518 "parser.y"
+  case 67: /* expressao: expressao '-' expressao  */
+#line 517 "parser.y"
     {
-        (yyval.no) = criar_no("OPERADOR", "*");
+        (yyval.no) = criar_no("OPERADOR", "-");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
 #line 1990 "parser.tab.c"
     break;
 
-  case 69: /* expressao: expressao '/' expressao  */
-#line 524 "parser.y"
+  case 68: /* expressao: expressao '*' expressao  */
+#line 523 "parser.y"
     {
-        (yyval.no) = criar_no("OPERADOR", "/");
+        (yyval.no) = criar_no("OPERADOR", "*");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
 #line 2000 "parser.tab.c"
     break;
 
-  case 70: /* expressao: expressao MAIOR expressao  */
-#line 530 "parser.y"
+  case 69: /* expressao: expressao '/' expressao  */
+#line 529 "parser.y"
     {
-        (yyval.no) = criar_no("OPERADOR", ">");
+        (yyval.no) = criar_no("OPERADOR", "/");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
 #line 2010 "parser.tab.c"
     break;
 
-  case 71: /* expressao: expressao MENOR expressao  */
-#line 536 "parser.y"
+  case 70: /* expressao: expressao MAIOR expressao  */
+#line 535 "parser.y"
     {
-        (yyval.no) = criar_no("OPERADOR", "<");
+        (yyval.no) = criar_no("OPERADOR", ">");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
 #line 2020 "parser.tab.c"
     break;
 
+  case 71: /* expressao: expressao MENOR expressao  */
+#line 541 "parser.y"
+    {
+        (yyval.no) = criar_no("OPERADOR", "<");
+        adicionar_filho((yyval.no), (yyvsp[-2].no));
+        adicionar_filho((yyval.no), (yyvsp[0].no));
+    }
+#line 2030 "parser.tab.c"
+    break;
+
   case 72: /* expressao: '(' expressao ')'  */
-#line 542 "parser.y"
+#line 547 "parser.y"
     {
         (yyval.no) = (yyvsp[-1].no);
     }
-#line 2028 "parser.tab.c"
+#line 2038 "parser.tab.c"
     break;
 
   case 73: /* expressao: '-' expressao  */
-#line 546 "parser.y"
-    {
-        (yyval.no) = criar_no("OPERADOR_UNARIO", "-");
-        adicionar_filho((yyval.no), (yyvsp[0].no));
-    }
-#line 2037 "parser.tab.c"
-    break;
-
-  case 74: /* expressao: expressao IGUAL expressao  */
 #line 551 "parser.y"
     {
-        (yyval.no) = criar_no("OPERADOR", "==");
-        adicionar_filho((yyval.no), (yyvsp[-2].no));
+        (yyval.no) = criar_no("OPERADOR_UNARIO", "-");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
 #line 2047 "parser.tab.c"
     break;
 
-  case 75: /* expressao: expressao DIFERENTE expressao  */
-#line 557 "parser.y"
+  case 74: /* expressao: expressao IGUAL expressao  */
+#line 556 "parser.y"
     {
-        (yyval.no) = criar_no("OPERADOR", "!=");
+        (yyval.no) = criar_no("OPERADOR", "==");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
 #line 2057 "parser.tab.c"
     break;
 
-  case 76: /* expressao: expressao MENOR_IGUAL expressao  */
-#line 563 "parser.y"
+  case 75: /* expressao: expressao DIFERENTE expressao  */
+#line 562 "parser.y"
     {
-        (yyval.no) = criar_no("OPERADOR", "<=");
+        (yyval.no) = criar_no("OPERADOR", "!=");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
 #line 2067 "parser.tab.c"
     break;
 
-  case 77: /* expressao: expressao MAIOR_IGUAL expressao  */
-#line 569 "parser.y"
+  case 76: /* expressao: expressao MENOR_IGUAL expressao  */
+#line 568 "parser.y"
     {
-        (yyval.no) = criar_no("OPERADOR", ">=");
+        (yyval.no) = criar_no("OPERADOR", "<=");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
 #line 2077 "parser.tab.c"
     break;
 
-  case 78: /* expressao: expressao E expressao  */
-#line 575 "parser.y"
+  case 77: /* expressao: expressao MAIOR_IGUAL expressao  */
+#line 574 "parser.y"
     {
-        (yyval.no) = criar_no("OPERADOR", "&&");
+        (yyval.no) = criar_no("OPERADOR", ">=");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
 #line 2087 "parser.tab.c"
     break;
 
-  case 79: /* expressao: expressao OU expressao  */
-#line 581 "parser.y"
+  case 78: /* expressao: expressao E expressao  */
+#line 580 "parser.y"
     {
-        (yyval.no) = criar_no("OPERADOR", "||");
+        (yyval.no) = criar_no("OPERADOR", "&&");
         adicionar_filho((yyval.no), (yyvsp[-2].no));
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
 #line 2097 "parser.tab.c"
     break;
 
+  case 79: /* expressao: expressao OU expressao  */
+#line 586 "parser.y"
+    {
+        (yyval.no) = criar_no("OPERADOR", "||");
+        adicionar_filho((yyval.no), (yyvsp[-2].no));
+        adicionar_filho((yyval.no), (yyvsp[0].no));
+    }
+#line 2107 "parser.tab.c"
+    break;
+
   case 80: /* expressao: NAO expressao  */
-#line 587 "parser.y"
+#line 592 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR", "!");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 2106 "parser.tab.c"
+#line 2116 "parser.tab.c"
     break;
 
   case 81: /* expressao: INC expressao  */
-#line 592 "parser.y"
+#line 597 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR_PRE", "++");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 2115 "parser.tab.c"
+#line 2125 "parser.tab.c"
     break;
 
   case 82: /* expressao: DEC expressao  */
-#line 597 "parser.y"
+#line 602 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR_PRE", "--");
         adicionar_filho((yyval.no), (yyvsp[0].no));
     }
-#line 2124 "parser.tab.c"
+#line 2134 "parser.tab.c"
     break;
 
   case 83: /* expressao: expressao INC  */
-#line 602 "parser.y"
+#line 607 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR_POS", "++");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 2133 "parser.tab.c"
+#line 2143 "parser.tab.c"
     break;
 
   case 84: /* expressao: expressao DEC  */
-#line 607 "parser.y"
+#line 612 "parser.y"
     {
         (yyval.no) = criar_no("OPERADOR_POS", "--");
         adicionar_filho((yyval.no), (yyvsp[-1].no));
     }
-#line 2142 "parser.tab.c"
+#line 2152 "parser.tab.c"
     break;
 
 
-#line 2146 "parser.tab.c"
+#line 2156 "parser.tab.c"
 
       default: break;
     }
@@ -2335,7 +2345,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 613 "parser.y"
+#line 618 "parser.y"
 
 
 //ARVORE
@@ -2351,6 +2361,7 @@ No* criar_no(char* tipo, char* valor) {
     no->linha = linha;
     no->pai = NULL;
     no->filhos = NULL;
+    no->verificado = 0;
     return no;
 }
 
@@ -2483,8 +2494,11 @@ void liberar_escopo() {
 
 // Verificações semânticas principais
 void verificar_declaracao_duplicada(TabelaSimbolos* tabela, const char* nome, int linha) {
+    static int linha_anterior = -1;  // Para evitar repetições na mesma linha
     for (int i = 0; i < tabela->quantidade; i++) {
-        if (strcmp(tabela->entradas[i].nome, nome) == 0) {
+        if (strcmp(tabela->entradas[i].nome, nome) == 0 && 
+            linha_anterior != linha) {
+            linha_anterior = linha;
             char msg[100];
             sprintf(msg, "Identificador '%s' já declarado", nome);
             erro_semantico(msg, linha);
@@ -2579,7 +2593,8 @@ const char* inferir_tipo_expressao(No* expressao) {
 }
 
 void verificar_tipo_operacao(No* no) {
-    if (!no || !no->tipo) return;
+    if (!no || !no->tipo || no->verificado) return;
+    no->verificado = 1;
 
     if (strcmp(no->tipo, "OPERADOR") == 0) {
         const char* tipo_esq = inferir_tipo_expressao(no->filhos[0]);
@@ -2646,20 +2661,22 @@ void verificar_declaracoes(No* no) {
 }
 
 void verificar_identificador(No* no) {
-    if (strcmp(no->tipo, "ID") == 0) {
-        // Se estiver dentro de um bloco FOR
-        No* atual = no->pai;
-        while (atual != NULL) {
-            if (strcmp(atual->tipo, "FOR") == 0) {
-                // Verifica se o ID é a variável de controle do for
-                if (atual->filhos[0] && strcmp(atual->filhos[0]->tipo, "DECLARACAO_VAR") == 0 &&
-                    strcmp(atual->filhos[0]->valor, no->valor) == 0) {
-                    return; // É a variável de controle do for, não precisa verificar
-                }
+    // Verifica se o identificador está em um FOR
+    No* atual = no->pai;
+    while (atual != NULL) {
+        if (strcmp(atual->tipo, "FOR") == 0) {
+            // Se o ID é o primeiro filho de uma atribuição que é o primeiro filho do FOR
+            if (atual->filhos[0] && strcmp(atual->filhos[0]->tipo, "ATRIBUICAO") == 0 &&
+                atual->filhos[0]->filhos[0] && strcmp(atual->filhos[0]->filhos[0]->valor, no->valor) == 0) {
+                return; // É a variável de controle do FOR, não precisa verificar
             }
-            atual = atual->pai;
         }
-        
+        atual = atual->pai;
+    }
+
+    static int linhas_verificadas[1000] = {0};
+    if (linhas_verificadas[no->linha] == 0) {
+        linhas_verificadas[no->linha] = 1;
         if (!verificar_variavel_declarada(tabela, no->valor)) {
             char msg[100];
             sprintf(msg, "Variável '%s' não foi declarada", no->valor);
@@ -2717,7 +2734,7 @@ void verificar_operador_aritmetico(const char* tipo_esq, const char* tipo_dir, i
 }
 
 void verificar_scan(No* no) {
-    if (strcmp(no->tipo, "SCAN") == 0) {
+    if (!no->verificado && no->filhos[0] && strcmp(no->filhos[0]->tipo, "ID") == 0) {
         const char* id = no->filhos[0]->valor;
         if (!verificar_variavel_declarada(tabela, id)) {
             char msg[100];
@@ -2775,46 +2792,94 @@ void verificar_condicional(No* no) {
 }
 
 void verificar_repeticao(No* no) {
-    if (strcmp(no->tipo, "WHILE") == 0) {
-        const char* tipo_cond = inferir_tipo_expressao(no->filhos[0]);
+    if (strcmp(no->tipo, "WHILE") == 0 || strcmp(no->tipo, "FOR") == 0) {
+        No* cond_no = no->filhos[1];  // A condição está no segundo filho
+        if (!cond_no) return;
+        
+        const char* tipo_cond = inferir_tipo_expressao(cond_no);
         if (tipo_cond && strcmp(tipo_cond, "char[]") == 0) {
-            erro_semantico("Não é possível usar string como condição em while", no->linha);
-        }
-    }
-    else if (strcmp(no->tipo, "FOR") == 0) {
-        const char* tipo_cond = inferir_tipo_expressao(no->filhos[1]);
-        if (tipo_cond && strcmp(tipo_cond, "char[]") == 0) {
-            erro_semantico("Não é possível usar string como condição do for", no->linha);
-        }
-        if (no->filhos[0] && strcmp(no->filhos[0]->tipo, "DECLARACAO_VAR") == 0) {
-            const char* tipo_id = no->filhos[0]->filhos[0]->valor;
-            const char* nome_id = no->filhos[0]->valor;
-            adicionar_simbolo(tabela, nome_id, tipo_id, "variavel", no->linha);
+            erro_semantico("Não é possível usar string como condição", no->linha);
         }
     }
 }
 
 void analisar_no(No* no) {
-    if (!no) return;
-
+    if (!no || no->verificado) return;
+    no->verificado = 1;
+    
+    // Primeiro analisa os filhos
     for (int i = 0; i < no->num_filhos; i++) {
         analisar_no(no->filhos[i]);
     }
+    
+    // Depois analisa o nó atual
+    if (strcmp(no->tipo, "ID") == 0) {
+        No* pai = no->pai;
+        if (pai && strcmp(pai->tipo, "DECLARACAO_VAR") != 0 && 
+            strcmp(pai->tipo, "PARAMETRO") != 0) {
+            verificar_identificador(no);
+        }
+    }
+    else if (strcmp(no->tipo, "ATRIBUICAO") == 0) {
+        verificar_atribuicao(no);
+    }
+    else if (strcmp(no->tipo, "OPERADOR") == 0) {
+        verificar_tipo_operacao(no);
+    }
+    else if (strcmp(no->tipo, "IF") == 0 || strcmp(no->tipo, "IF_ELSE") == 0) {
+        verificar_condicional(no);
+    }
+    else if (strcmp(no->tipo, "WHILE") == 0 || strcmp(no->tipo, "FOR") == 0) {
+        if (!no->verificado) {
+            verificar_repeticao(no);
+        }
+    }
+    else if (strcmp(no->tipo, "SCAN") == 0 && !no->verificado) {
+        verificar_scan(no);
+    }
+    else if (strcmp(no->tipo, "RETURN") == 0 && !no->verificado) {
+        verificar_return(no);
+    }
+}
 
-    verificar_declaracoes(no);
-    verificar_identificador(no);
-    verificar_atribuicao(no);
-    verificar_operadores(no);
-    verificar_condicional(no);
-    verificar_repeticao(no);
-    verificar_scan(no);
-    verificar_return(no);
+void registrar_declaracoes(No* no) {
+    if (!no) return;
+    
+    if (strcmp(no->tipo, "DECLARACAO_VAR") == 0 && !no->verificado) {
+        no->verificado = 1;  // Marca como verificado
+        verificar_declaracao_duplicada(tabela, no->valor, no->linha);
+        if (!verificar_variavel_declarada(tabela, no->valor)) {
+            adicionar_simbolo(tabela, no->valor, no->filhos[0]->valor, "variavel", no->linha);
+        }
+    }
+    
+    // Processa primeiro os nós filhos
+    for (int i = 0; i < no->num_filhos; i++) {
+        registrar_declaracoes(no->filhos[i]);
+    }
+}
+
+void resetar_verificacoes(No* no) {
+    if (!no) return;
+    no->verificado = 0;
+    for (int i = 0; i < no->num_filhos; i++) {
+        resetar_verificacoes(no->filhos[i]);
+    }
 }
 
 void iniciar_analise_semantica(No* raiz) {
     if (!raiz) return;
     criar_escopo();
+    
+    // Primeiro registra todas as declarações
+    registrar_declaracoes(raiz);
+    
+    // Reseta as flags de verificação antes da análise
+    resetar_verificacoes(raiz);
+    
+    // Faz a análise
     analisar_no(raiz);
+    
     liberar_escopo();
 }
 
