@@ -2380,7 +2380,6 @@ void adicionar_filho(No* pai, No* filho) {
 
 void imprimir_arvore(No* no, int nivel) {
     if (no == NULL) {
-        printf("DEBUG: Nó NULL encontrado!\n");
         return;
     }
     
@@ -2539,13 +2538,15 @@ bool is_tipo_numerico(const char* tipo) {
 }
 
 const char* inferir_tipo_expressao(No* expressao) {
-    if (!expressao) return NULL;
+    if (!expressao) {
+        return NULL;
+    }
 
     // Para literais numéricos
     if (strcmp(expressao->tipo, "NUM_INT") == 0) return "int";
     if (strcmp(expressao->tipo, "NUM_FLOAT") == 0) return "float";
     if (strcmp(expressao->tipo, "CHAR") == 0) return "char";
-    if (strcmp(expressao->tipo, "STRING") == 0) return "char[]";  // Mudança aqui
+    if (strcmp(expressao->tipo, "STRING") == 0) return "string";
     
     // Para identificadores
     if (strcmp(expressao->tipo, "ID") == 0) {
@@ -2554,6 +2555,8 @@ const char* inferir_tipo_expressao(No* expressao) {
                 return tabela->entradas[i].tipo;
             }
         }
+        
+        return NULL;
     }
 
     // Para operadores
@@ -2582,64 +2585,50 @@ const char* inferir_tipo_expressao(No* expressao) {
 void verificar_tipo_operacao(No* no) {
     if (!no || !no->tipo) return;
 
-    if (strcmp(no->tipo, "OPERADOR") == 0) {
+    if (strcmp(no->tipo, "OPERADOR") == 0 && !no->verificado) {
+        no->verificado = 1;
         const char* tipo_esq = inferir_tipo_expressao(no->filhos[0]);
         const char* tipo_dir = inferir_tipo_expressao(no->filhos[1]);
 
-        if (!tipo_esq || !tipo_dir) return;
-
-        // Comparações de igualdade (== e !=)
-        if (strcmp(no->valor, "==") == 0 || strcmp(no->valor, "!=") == 0) {
-            if ((strcmp(tipo_esq, "char[]") == 0 && is_tipo_numerico(tipo_dir)) || 
-                (is_tipo_numerico(tipo_esq) && strcmp(tipo_dir, "char[]") == 0)) {
-                erro_semantico("Não é possível comparar strings com tipos numéricos", no->linha);
+        // Verifica strings em comparações relacionais
+        if (tipo_dir && strcmp(tipo_dir, "string") == 0) {
+            if (strcmp(no->valor, "<") == 0 || 
+                strcmp(no->valor, ">") == 0 || 
+                strcmp(no->valor, "<=") == 0 || 
+                strcmp(no->valor, ">=") == 0) {
+                erro_semantico("Não é possível usar string em comparação relacional", no->linha);
+                return;
+            }
+            else if (strcmp(no->valor, "==") == 0 || strcmp(no->valor, "!=") == 0) {
+                if (tipo_esq && is_tipo_numerico(tipo_esq)) {
+                    erro_semantico("Não é possível comparar strings com tipos numéricos", no->linha);
+                    return;
+                }
             }
         }
-        // Comparações relacionais (>, <, >=, <=)
-        else if (strcmp(no->valor, ">") == 0 || 
-                 strcmp(no->valor, "<") == 0 || 
-                 strcmp(no->valor, ">=") == 0 || 
-                 strcmp(no->valor, "<=") == 0) {
-            if (strcmp(tipo_esq, "char[]") == 0 || strcmp(tipo_dir, "char[]") == 0) {
-                erro_semantico("Não é possível usar strings em comparações relacionais", no->linha);
-            }
-            else if ((strcmp(tipo_esq, "char") == 0 && strcmp(tipo_dir, "int") == 0) ||
-                     (strcmp(tipo_esq, "int") == 0 && strcmp(tipo_dir, "char") == 0)) {
-                erro_semantico("Comparação relacional inválida entre tipos 'char' e 'int'", no->linha);
-            }
-        }
-    }
-}
-
-/* void verificar_tipo_operacao(No* no) {
-    if (!no || !no->tipo || no->verificado) return;
-    no->verificado = 1;
-
-    if (strcmp(no->tipo, "OPERADOR") == 0) {
-        const char* tipo_esq = inferir_tipo_expressao(no->filhos[0]);
-        const char* tipo_dir = inferir_tipo_expressao(no->filhos[1]);
 
         if (!tipo_esq || !tipo_dir) return;
 
-        // Comparações de igualdade (== e !=)
+        // Comparações de igualdade
         if (strcmp(no->valor, "==") == 0 || strcmp(no->valor, "!=") == 0) {
             if ((strcmp(tipo_esq, "string") == 0 && is_tipo_numerico(tipo_dir)) || 
                 (is_tipo_numerico(tipo_esq) && strcmp(tipo_dir, "string") == 0)) {
                 erro_semantico("Não é possível comparar strings com tipos numéricos", no->linha);
-            }
-            else if (!verificar_compatibilidade_tipos(tipo_esq, tipo_dir)) {
-                char msg[200];
-                sprintf(msg, "Comparação de igualdade inválida entre tipos '%s' e '%s'", tipo_esq, tipo_dir);
-                erro_semantico(msg, no->linha);
+                return;
             }
         }
-        // Comparações relacionais (>, <, >=, <=)
+        // Comparações relacionais
         else if (strcmp(no->valor, ">") == 0 || 
                  strcmp(no->valor, "<") == 0 || 
                  strcmp(no->valor, ">=") == 0 || 
                  strcmp(no->valor, "<=") == 0) {
             if (strcmp(tipo_esq, "string") == 0 || strcmp(tipo_dir, "string") == 0) {
-                erro_semantico("Não é possível usar strings em comparações relacionais", no->linha);
+                erro_semantico("Não é possível usar string em comparação relacional", no->linha);
+                return;
+            }
+            else if ((strcmp(tipo_esq, "char") == 0 && strcmp(tipo_dir, "int") == 0) ||
+                     (strcmp(tipo_esq, "int") == 0 && strcmp(tipo_dir, "char") == 0)) {
+                erro_semantico("Comparação relacional inválida entre tipos 'char' e 'int'", no->linha);
             }
             else if (!is_tipo_numerico(tipo_esq) || !is_tipo_numerico(tipo_dir)) {
                 char msg[200];
@@ -2647,24 +2636,8 @@ void verificar_tipo_operacao(No* no) {
                 erro_semantico(msg, no->linha);
             }
         }
-        // Operações aritméticas (+, -, *, /)
-        else if (strcmp(no->valor, "+") == 0 || 
-                 strcmp(no->valor, "-") == 0 || 
-                 strcmp(no->valor, "*") == 0 || 
-                 strcmp(no->valor, "/") == 0) {
-            if (!is_tipo_numerico(tipo_esq) || !is_tipo_numerico(tipo_dir)) {
-                char msg[200];
-                sprintf(msg, "Operação aritmética inválida entre tipos '%s' e '%s'", tipo_esq, tipo_dir);
-                erro_semantico(msg, no->linha);
-            }
-            // Verificação adicional para divisão por zero (opcional)
-            if (strcmp(no->valor, "/") == 0 && strcmp(no->filhos[1]->tipo, "NUM_INT") == 0 && 
-                strcmp(no->filhos[1]->valor, "0") == 0) {
-                erro_semantico("Divisão por zero", no->linha);
-            }
-        }
     }
-} */
+}
 
 void verificar_acesso_vetor(No* no) {
     if (!no || strcmp(no->tipo, "ACESSO_VETOR") != 0) return;
@@ -2680,12 +2653,34 @@ void verificar_declaracoes(No* no) {
 }
 
 void verificar_identificador(No* no) {
-    // Verifica se a variável está declarada
+    if (no->verificado) return;
+    
+    // Verifica se o ID está dentro de um FOR ou SCAN
+    No* atual = no;
+    while (atual->pai) {
+        if (strcmp(atual->pai->tipo, "FOR") == 0) {
+            No* init_no = atual->pai->filhos[0];
+            if (init_no && strcmp(init_no->tipo, "ATRIBUICAO") == 0 &&
+                strcmp(init_no->filhos[0]->valor, no->valor) == 0) {
+                no->verificado = 1;
+                return;  // É a variável de controle do FOR
+            }
+        }
+        if (strcmp(atual->pai->tipo, "SCAN") == 0) {
+            no->verificado = 1;
+            return;  // Ignora IDs dentro de SCAN
+        }
+        atual = atual->pai;
+    }
+    
+    // Se não é variável de controle do FOR nem dentro de SCAN
     if (!verificar_variavel_declarada(tabela, no->valor)) {
         char msg[100];
         sprintf(msg, "Variável '%s' não foi declarada", no->valor);
         erro_semantico(msg, no->linha);
     }
+    
+    no->verificado = 1;
 }
 
 void verificar_atribuicao(No* no) {
@@ -2737,20 +2732,23 @@ void verificar_operador_aritmetico(const char* tipo_esq, const char* tipo_dir, i
 }
 
 void verificar_scan(No* no) {
-    if (!no->verificado && no->filhos[0] && strcmp(no->filhos[0]->tipo, "ID") == 0) {
-        const char* id = no->filhos[0]->valor;
-        if (!verificar_variavel_declarada(tabela, id)) {
-            char msg[100];
-            sprintf(msg, "Variável '%s' não foi declarada", id);
-            erro_semantico(msg, no->linha);
+    if (!no->verificado) {
+        if (no->filhos[0] && strcmp(no->filhos[0]->tipo, "ID") == 0) {
+            const char* id = no->filhos[0]->valor;
+            if (!verificar_variavel_declarada(tabela, id)) {
+                char msg[100];
+                sprintf(msg, "Variável '%s' não foi declarada", id);
+                erro_semantico(msg, no->linha);
+            }
         }
+        no->verificado = 1;
     }
 }
 
 void verificar_return(No* no) {
     if (strcmp(no->tipo, "RETURN") == 0) {
         const char* tipo_retorno = inferir_tipo_expressao(no->filhos[0]);
-        const char* tipo_funcao = "int";  // Para o exemplo, assumimos que é uma função int
+        const char* tipo_funcao = "int";  // Para o exemplo, assumimos que é uma função int (pode ser qualquer tipo)
         
         if (tipo_retorno && strcmp(tipo_retorno, tipo_funcao) != 0) {
             char msg[200];
@@ -2796,13 +2794,46 @@ void verificar_condicional(No* no) {
 }
 
 void verificar_repeticao(No* no) {
-    if (strcmp(no->tipo, "WHILE") == 0 || strcmp(no->tipo, "FOR") == 0) {
-        No* cond_no = no->filhos[1];  // A condição está no segundo filho
-        if (!cond_no) return;
-        
-        const char* tipo_cond = inferir_tipo_expressao(cond_no);
-        if (tipo_cond && strcmp(tipo_cond, "string") == 0) {
-            erro_semantico("Não é possível usar string como condição", no->linha);
+    if (!no) return;
+    
+    if (strcmp(no->tipo, "WHILE") == 0) {
+        No* cond_no = no->filhos[0];
+        if (cond_no) {
+            if (strcmp(cond_no->tipo, "OPERADOR") == 0) {
+                verificar_tipo_operacao(cond_no);
+            } else {
+                const char* tipo_cond = inferir_tipo_expressao(cond_no);
+                if (tipo_cond && strcmp(tipo_cond, "string") == 0) {
+                    erro_semantico("Não é possível usar string como condição em while", no->linha);
+                }
+            }
+        }
+    }
+    else if (strcmp(no->tipo, "FOR") == 0) {
+        // Verifica condição (segundo filho)
+        if (no->num_filhos >= 2) {
+            No* cond_no = no->filhos[1];
+            if (cond_no && strcmp(cond_no->tipo, "OPERADOR") == 0) {
+                verificar_tipo_operacao(cond_no);
+            }
+        }
+
+        // Verifica incremento (terceiro filho)
+        if (no->num_filhos >= 3) {
+            No* inc_no = no->filhos[2];
+            const char* tipo_inc = inferir_tipo_expressao(inc_no);
+            if (tipo_inc && !is_tipo_numerico(tipo_inc)) {
+                erro_semantico("Expressão de incremento do for deve ser numérica", no->linha);
+            }
+        }
+    }
+}
+
+void registrar_variavel_for(No* no) {
+    if (no->filhos[0] && strcmp(no->filhos[0]->tipo, "ATRIBUICAO") == 0) {
+        No* id_no = no->filhos[0]->filhos[0];
+        if (id_no && strcmp(id_no->tipo, "ID") == 0) {
+            adicionar_simbolo(tabela, id_no->valor, "int", "variavel", no->linha);
         }
     }
 }
@@ -2810,29 +2841,31 @@ void verificar_repeticao(No* no) {
 void analisar_no(No* no) {
     if (!no) return;
     
-    // Primeiro analisa o nó atual antes de seus filhos
-    if (strcmp(no->tipo, "OPERADOR") == 0) {
-        verificar_tipo_operacao(no);
+    if (strcmp(no->tipo, "FOR") == 0) {
+        registrar_variavel_for(no);  // Registra variável antes das verificações
+        verificar_repeticao(no);     // Faz todas as verificações do FOR
+        
+        // Analisa apenas o bloco do FOR (último filho)
+        if (no->num_filhos > 3) {
+            analisar_no(no->filhos[3]);
+        }
+        return;  // Evita processar os outros filhos novamente
     }
+    
+    // Verificações normais para outros tipos de nós
+    if (strcmp(no->tipo, "OPERADOR") == 0) verificar_tipo_operacao(no);
     else if (strcmp(no->tipo, "ID") == 0) {
-        No* pai = no->pai;
-        if (pai && 
-            strcmp(pai->tipo, "DECLARACAO_VAR") != 0 && 
-            strcmp(pai->tipo, "PARAMETRO") != 0) {
+        if (no->pai && strcmp(no->pai->tipo, "DECLARACAO_VAR") != 0 && 
+            strcmp(no->pai->tipo, "PARAMETRO") != 0) {
             verificar_identificador(no);
         }
     }
-    else if (strcmp(no->tipo, "ATRIBUICAO") == 0) {
-        verificar_atribuicao(no);
-    }
-    else if (strcmp(no->tipo, "RETURN") == 0) {
-        verificar_return(no);
-    }
-    else if (strcmp(no->tipo, "SCAN") == 0) {
-        verificar_scan(no);
-    }
-
-    // Depois analisa os filhos
+    else if (strcmp(no->tipo, "ATRIBUICAO") == 0) verificar_atribuicao(no);
+    else if (strcmp(no->tipo, "WHILE") == 0) verificar_repeticao(no);
+    else if (strcmp(no->tipo, "RETURN") == 0) verificar_return(no);
+    else if (strcmp(no->tipo, "SCAN") == 0) verificar_scan(no);
+    
+    // Processa os filhos recursivamente
     for (int i = 0; i < no->num_filhos; i++) {
         analisar_no(no->filhos[i]);
     }
@@ -2901,8 +2934,9 @@ int main(int argc, char** argv) {
     // Faz a análise léxica e sintática
     yyparse();
     
+    // Inicia a análise semântica se não houver erros léxicos ou sintáticos
     if (erros_lexicos == 0 && erros_sintaticos == 0) {
-    printf("\n=== Iniciando análise semântica ===\n"); // Ativa verificações semânticas
+    printf("\n=== Iniciando análise semântica ===\n"); 
     iniciar_analise_semantica(raiz);
     }
     

@@ -3,9 +3,6 @@
 #include <stdlib.h>
 #include "parser.tab.h"
 
-// [^ \t\n\r[:alnum:]_+\-*/%=<>!&|(){}\[\]"'.#@$^;,]+ { erro_lexico("Caractere(s) inválido(s)"); }
-//. { erro_lexico("Caractere inválido"); }
-
 int linha = 1;
 int erros_lexicos = 0;
 
@@ -99,7 +96,6 @@ void erro_lexico(const char* msg) {
 "%"                      { return '%'; }
 "$"                      { return '$'; }
 "#"                      { return '#'; }
-"@"                      { return '@'; }
 
 .                        { erro_lexico("Caractere inválido"); }
 

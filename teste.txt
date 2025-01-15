@@ -3,14 +3,15 @@
 #include <Math.h>
 
 int main() {
-    int x;       
+    int x;
+    float num;       
     int x;       // Erro 1: Declaração duplicada de 'x'
     char c;
     c = 't';
     
     y = 20;      // Erro 2: Variável 'y' não declarada
     
-    c = x + 5;   // Erro 3: Tentativa de atribuir int para char
+    c = x + 5.5;   // Erro 3: Tentativa de atribuir float para char
     
     if (c > 5) { // Erro 4: Comparação entre char e int
         x = x + 1;
