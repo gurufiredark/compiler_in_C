@@ -2839,7 +2839,7 @@ void registrar_variavel_for(No* no) {
 }
 
 void analisar_no(No* no) {
-    if (!no) return;
+    if (!no || no->verificado) return;
     
     if (strcmp(no->tipo, "FOR") == 0) {
         registrar_variavel_for(no);  // Registra variável antes das verificações
