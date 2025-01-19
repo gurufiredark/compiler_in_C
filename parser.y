@@ -6,6 +6,7 @@
 
 extern int erros_lexicos;
 int erros_sintaticos = 0;
+char* tipo_funcao_atual = NULL;
 
 typedef struct No {
     char* tipo;
@@ -22,6 +23,7 @@ typedef struct {
     char* tipo;        // Tipo do dado (int, float, char, etc)
     char* categoria;   // Variável ou Função
     int linha;         // Linha onde foi declarado
+    int tamanho_vetor; 
 } SimboloEntrada;
 
 typedef struct {
@@ -61,6 +63,9 @@ bool verificar_compatibilidade_tipos(const char* tipo1, const char* tipo2);
 bool is_tipo_numerico(const char* tipo);
 const char* inferir_tipo_expressao(No* expressao);
 void verificar_acesso_vetor(No* no);
+void verificar_identificador(No* no);
+void verificar_funcao(No* no);
+void verificar_return(No* no);
 void iniciar_analise_semantica(No* raiz);
 
 extern int linha;
@@ -103,7 +108,7 @@ No* raiz = NULL;
 %right INC DEC
 %left '(' ')'
 
-%type <no> programa declaracoes declaracao declaracao_variavel tipo
+%type <no> programa declaracoes declaracao declaracao_variavel tipo lista_valores
 %type <no> declaracao_funcao bloco comandos comando expressao
 %type <no> atribuicao comando_if comando_while comando_for atribuicao_for
 %type <no> parametros lista_parametros parametro
@@ -176,13 +181,45 @@ declaracao_variavel:
         adicionar_filho($$, $1);
         adicionar_simbolo(tabela, $2, $1->valor, "variavel", linha);
     }
+    | tipo ID '=' expressao ';'
+    {
+        $$ = criar_no("DECLARACAO_VAR", $2);
+        adicionar_filho($$, $1);
+        adicionar_filho($$, $4);
+        adicionar_simbolo(tabela, $2, $1->valor, "variavel", linha);
+    }
+    | tipo ID '=' ID '(' parametros ')' ';'  // Chamada de função
+    {
+        $$ = criar_no("DECLARACAO_VAR", $2);
+        adicionar_filho($$, $1); 
+        
+        // Cria o nó de chamada de função
+        No* chamada_funcao = criar_no("CHAMADA_FUNCAO", $4);
+        adicionar_filho(chamada_funcao, $6);
+        adicionar_filho($$, chamada_funcao); 
+        
+        adicionar_simbolo(tabela, $2, $1->valor, "variavel", linha);
+    }
     | tipo ID '[' NUM_INT ']' ';'  /* vetor com tamanho específico */
     {
         char temp[32];
         sprintf(temp, "%s[%d]", $2, $4);
         $$ = criar_no("DECLARACAO_VETOR", temp);
         adicionar_filho($$, $1);
-        adicionar_simbolo(tabela, $2, $1->valor, "variavel", linha);
+        char tipo_vetor[32];
+        sprintf(tipo_vetor, "%s[%d]", $1->valor, $4);
+        adicionar_simbolo(tabela, $2, tipo_vetor, "vetor", linha);
+    }
+    | tipo ID '[' NUM_INT ']' '=' '[' lista_valores ']' ';'  /* vetor com inicialização de valores */
+    {
+        char temp[32];
+        sprintf(temp, "%s[%d]", $2, $4);
+        $$ = criar_no("DECLARACAO_VETOR", temp);
+        adicionar_filho($$, $1);
+        adicionar_filho($$, $8);
+        char tipo_vetor[32];
+        sprintf(tipo_vetor, "%s[%d]", $1->valor, $4);
+        adicionar_simbolo(tabela, $2, tipo_vetor, "vetor", linha);
     }
     | tipo ID '[' ']' ';'  /* vetor sem tamanho específico */
     {
@@ -190,7 +227,9 @@ declaracao_variavel:
         sprintf(temp, "%s[]", $2);
         $$ = criar_no("DECLARACAO_VETOR", temp);
         adicionar_filho($$, $1);
-        adicionar_simbolo(tabela, $2, $1->valor, "variavel", linha);
+        char tipo_vetor[32];
+        sprintf(tipo_vetor, "%s[]", $1->valor);
+        adicionar_simbolo(tabela, $2, tipo_vetor, "vetor", linha);
     }
     | tipo ID '[' ']' '=' STRING ';'  /* string com inicialização sem tamanho explícito */
     {
@@ -198,6 +237,37 @@ declaracao_variavel:
         adicionar_filho($$, $1);
         adicionar_filho($$, criar_no("STRING", $6));
         adicionar_simbolo(tabela, $2, $1->valor, "variavel", linha);
+    }
+    ;
+
+lista_valores:
+    NUM_INT
+    {
+        $$ = criar_no("LISTA_VALORES", "");
+        char valor[32];
+        sprintf(valor, "%d", $1);
+        adicionar_filho($$, criar_no("NUM_INT", valor));
+    }
+    | lista_valores ',' NUM_INT
+    {
+        $$ = $1;
+        char valor[32];
+        sprintf(valor, "%d", $3);
+        adicionar_filho($$, criar_no("NUM_INT", valor));
+    }
+    |NUM_FLOAT
+    {
+        $$ = criar_no("LISTA_VALORES", "");
+        char valor[32];
+        sprintf(valor, "%f", $1);
+        adicionar_filho($$, criar_no("NUM_FLOAT", valor));
+    }
+    | lista_valores ',' NUM_FLOAT
+    {
+        $$ = $1;
+        char valor[32];
+        sprintf(valor, "%f", $3);
+        adicionar_filho($$, criar_no("NUM_FLOAT", valor));
     }
     ;
 
@@ -260,10 +330,20 @@ lista_parametros:
         $$ = criar_no("LISTA_PARAMETROS", "");
         adicionar_filho($$, $1);
     }
+    | expressao
+    {
+        $$ = criar_no("LISTA_PARAMETROS", "");
+        adicionar_filho($$, $1);
+    }
     | parametro ',' lista_parametros
     {
         $$ = $3;
         adicionar_filho($$, $1);
+    }
+    | expressao  ',' lista_parametros
+    {
+        $$ = $1;
+        adicionar_filho($$, $3);
     }
     ;
 
@@ -500,6 +580,11 @@ expressao:
     | CHAR 
     { 
         $$ = criar_no("CHAR", $1);
+    }
+    | ID '(' parametros ')'
+    {
+        $$ = criar_no("CHAMADA_FUNCAO", $1);
+        adicionar_filho($$, $3);  // Adiciona a lista de argumentos como filho
     }
     | ID '[' expressao ']'  /* Acesso a vetor/string */
     {
@@ -810,6 +895,16 @@ const char* inferir_tipo_expressao(No* expressao) {
         return NULL;
     }
 
+    if (strcmp(expressao->tipo, "CHAMADA_FUNCAO") == 0) {
+        // Busca o tipo de retorno da função na tabela de símbolos
+        for (int i = 0; i < tabela->quantidade; i++) {
+            if (strcmp(tabela->entradas[i].nome, expressao->valor) == 0 && 
+                strcmp(tabela->entradas[i].categoria, "funcao") == 0) {
+                return tabela->entradas[i].tipo;
+            }
+        }
+    }
+
     // Para literais numéricos
     if (strcmp(expressao->tipo, "NUM_INT") == 0) return "int";
     if (strcmp(expressao->tipo, "NUM_FLOAT") == 0) return "float";
@@ -825,6 +920,16 @@ const char* inferir_tipo_expressao(No* expressao) {
         }
         
         return NULL;
+    }
+
+    if (strcmp(expressao->tipo, "OPERADOR") == 0 && expressao->valor) {
+        // Verifica se é uma chamada de função
+        for (int i = 0; i < tabela->quantidade; i++) {
+            if (strcmp(tabela->entradas[i].nome, expressao->valor) == 0 && 
+                strcmp(tabela->entradas[i].categoria, "funcao") == 0) {
+                return tabela->entradas[i].tipo;
+            }
+        }
     }
 
     // Para operadores
@@ -908,12 +1013,103 @@ void verificar_tipo_operacao(No* no) {
 }
 
 void verificar_acesso_vetor(No* no) {
-    if (!no || strcmp(no->tipo, "ACESSO_VETOR") != 0) return;
-    const char* tipo_indice = inferir_tipo_expressao(no->filhos[0]);
-    if (strcmp(tipo_indice, "int") != 0) {
-        erro_semantico("Índice de vetor deve ser do tipo inteiro", linha);
+    if (!no || (strcmp(no->tipo, "ACESSO_VETOR") != 0 && strcmp(no->tipo, "ATRIBUICAO_VETOR") != 0)) return;
+
+    const char* nome_vetor = strcmp(no->tipo, "ACESSO_VETOR") == 0 ? no->valor : no->filhos[0]->valor;
+                
+    // verifica se o vetor foi declarado
+    if (!verificar_variavel_declarada(tabela, nome_vetor)) {
+        char msg[100];
+        sprintf(msg, "Vetor '%s' não foi declarado", nome_vetor);
+        erro_semantico(msg, no->linha);
+        return;
+    }
+
+    No* indice_no = strcmp(no->tipo, "ACESSO_VETOR") == 0 ? no->filhos[0] : no->filhos[1];
+
+    // verifica se o índice é uma expressão numérica
+    if (indice_no) {
+        const char* tipo_indice = inferir_tipo_expressao(indice_no);
+        // Só verifica o tipo se não for NUM_INT direto
+        if (strcmp(indice_no->tipo, "NUM_INT") != 0 && tipo_indice && strcmp(tipo_indice, "int") != 0) {
+            erro_semantico("Índice de vetor deve ser do tipo inteiro", no->linha);
+            return;
+        }
+    }
+
+    // se for um número literal, verifica os limites
+    if (indice_no && strcmp(indice_no->tipo, "NUM_INT") == 0) {
+        int indice = atoi(indice_no->valor);
+        
+        // Procura o vetor na tabela de símbolos
+        for (int i = 0; i < tabela->quantidade; i++) {
+            if (strcmp(tabela->entradas[i].nome, nome_vetor) == 0) {
+                char* tipo_str = strdup(tabela->entradas[i].tipo);
+                char* inicio = strchr(tipo_str, '[');
+                char* fim = strchr(tipo_str, ']');
+                
+                if (inicio && fim && (fim > inicio)) {
+                    inicio++; // Pula o '['
+                    *fim = '\0'; // Termina a string no ']'
+                    int tamanho = atoi(inicio);
+                    
+                    if (tamanho > 0 && indice >= tamanho) {
+                        char msg[100];
+                        sprintf(msg, "Acesso fora dos limites do vetor '%s'. Índice %d não é permitido", 
+                                nome_vetor, indice);
+                        erro_semantico(msg, no->linha);
+                    }
+                }
+                free(tipo_str);
+                break;
+            }
+        }
     }
 }
+
+void verificar_lista_valores(No* no, const char* tipo_vetor, int tamanho_vetor) {
+    if (!no || strcmp(no->tipo, "LISTA_VALORES") != 0) return;
+
+    // Verifica se a quantidade de valores excede o tamanho do vetor
+    if (no->num_filhos > tamanho_vetor) {
+        char msg[200];
+        sprintf(msg, "Quantidade de valores (%d) excede o tamanho do vetor (%d). Índices válidos: 0 a %d", 
+                no->num_filhos, tamanho_vetor, tamanho_vetor - 1);
+        erro_semantico(msg, no->linha);
+        return;
+    }
+
+    // Verifica o tipo de cada valor na lista
+    for (int i = 0; i < no->num_filhos; i++) {
+        No* valor = no->filhos[i];
+        
+        // Para vetores de inteiros
+        if (strcmp(tipo_vetor, "int") == 0) {
+            if (strcmp(valor->tipo, "NUM_INT") != 0) {
+                char msg[100];
+                sprintf(msg, "Valor incompatível na posição %d da inicialização do vetor. Esperado: int", i);
+                erro_semantico(msg, no->linha);
+            }
+        }
+        // Para vetores de float
+        else if (strcmp(tipo_vetor, "float") == 0) {
+            if (strcmp(valor->tipo, "NUM_FLOAT") != 0 && strcmp(valor->tipo, "NUM_INT") != 0) {
+                char msg[100];
+                sprintf(msg, "Valor incompatível na posição %d da inicialização do vetor. Esperado: float", i);
+                erro_semantico(msg, no->linha);
+            }
+        }
+        // Para vetores de char
+        else if (strcmp(tipo_vetor, "char") == 0) {
+            if (strcmp(valor->tipo, "CHAR") != 0) {
+                char msg[100];
+                sprintf(msg, "Valor incompatível na posição %d da inicialização do vetor. Esperado: char", i);
+                erro_semantico(msg, no->linha);
+            }
+        }
+    }
+}
+
 void verificar_declaracoes(No* no) {
     if (strcmp(no->tipo, "DECLARACAO_VAR") == 0) {
         verificar_declaracao_duplicada(tabela, no->valor, no->linha);
@@ -934,11 +1130,22 @@ void verificar_identificador(No* no) {
                 return;  // É a variável de controle do FOR
             }
         }
-        if (strcmp(atual->pai->tipo, "SCAN") == 0) {
+        if (strcmp(atual->pai->tipo, "PARAMETRO") == 0 || 
+            strcmp(atual->pai->tipo, "DECLARACAO_VAR") == 0 ||
+            strcmp(atual->pai->tipo, "SCAN") == 0) {
             no->verificado = 1;
-            return;  // Ignora IDs dentro de SCAN
+            return;  // Ignora IDs em declarações, parâmetros e SCAN
         }
         atual = atual->pai;
+    }
+
+    Escopo* escopo_verificar = escopo_atual;
+    while (escopo_verificar) {
+        if (verificar_variavel_declarada(escopo_verificar->tabela, no->valor)) {
+            no->verificado = 1;
+            return;
+        }
+        escopo_verificar = escopo_verificar->pai;
     }
     
     // Se não é variável de controle do FOR nem dentro de SCAN
@@ -1015,13 +1222,52 @@ void verificar_scan(No* no) {
 
 void verificar_return(No* no) {
     if (strcmp(no->tipo, "RETURN") == 0) {
+        // Se não estiver dentro de uma função
+        if (!tipo_funcao_atual) {
+            erro_semantico("Retorno fora de contexto de função", no->linha);
+            return;
+        }
+
         const char* tipo_retorno = inferir_tipo_expressao(no->filhos[0]);
-        const char* tipo_funcao = "int";  // Para o exemplo, assumimos que é uma função int (pode ser qualquer tipo)
         
-        if (tipo_retorno && strcmp(tipo_retorno, tipo_funcao) != 0) {
+        if (!tipo_retorno) {
+            // Se não conseguir inferir o tipo, tenta obter o tipo do nó diretamente
+            tipo_retorno = no->filhos[0]->tipo;
+        }
+
+        if (strncmp(tipo_retorno, "NUM_", 4) == 0) {
+            if (strstr(tipo_retorno, "INT")) tipo_retorno = "int";
+            else if (strstr(tipo_retorno, "FLOAT")) tipo_retorno = "float";
+        }
+
+        // Conversões flexíveis
+        if (strcmp(tipo_funcao_atual, "int") == 0) {
+            if (strcmp(tipo_retorno, "char") == 0 || 
+                strcmp(tipo_retorno, "float") == 0) {
+                // Permite conversão com aviso
+                printf("Aviso: conversão implícita de %s para int na linha %d\n", 
+                       tipo_retorno, no->linha);
+                return;
+            }
+        }
+        else if (strcmp(tipo_funcao_atual, "float") == 0) {
+            if (strcmp(tipo_retorno, "int") == 0 || 
+                strcmp(tipo_retorno, "char") == 0) {
+                // Permite conversão com aviso
+                printf("Aviso: conversão implícita para float na linha %d\n", no->linha);
+                return;
+            }
+        }
+        else if (strcmp(tipo_funcao_atual, "char") == 0) {
+            if (strcmp(tipo_retorno, "string") == 0) {
+                return;  // Permite retornar string para função char
+            }
+        }
+
+        // Verifica compatibilidade de tipos
+        if (!verificar_compatibilidade_tipos(tipo_funcao_atual, tipo_retorno)) {
             char msg[200];
-            sprintf(msg, "Tipo de retorno incompatível: esperado '%s', encontrado '%s'", 
-                    tipo_funcao, tipo_retorno);
+            sprintf(msg, "Tipo de retorno incompatível");
             erro_semantico(msg, no->linha);
         }
     }
@@ -1097,6 +1343,132 @@ void verificar_repeticao(No* no) {
     }
 }
 
+void verificar_chamada_funcao(No* no) {
+    if (!no || strcmp(no->tipo, "CHAMADA_FUNCAO") != 0) return;
+
+    const char* nome_funcao = no->valor;
+
+    // Verifica se a função existe
+    bool funcao_encontrada = false;
+    for (int i = 0; i < tabela->quantidade; i++) {
+        if (strcmp(tabela->entradas[i].nome, nome_funcao) == 0 && 
+            strcmp(tabela->entradas[i].categoria, "funcao") == 0) {
+            funcao_encontrada = true;
+            break;
+        }
+    }
+
+    if (!funcao_encontrada) {
+        char msg[100];
+        sprintf(msg, "Função '%s' não declarada", nome_funcao);
+        erro_semantico(msg, no->linha);
+        return;
+    }
+
+    // Verifica os parâmetros
+    No* parametros = no->filhos[0];
+    if (parametros && strcmp(parametros->tipo, "PARAMETROS") == 0) {
+        // Se tem parâmetros, verifica seus tipos
+        if (parametros->num_filhos > 0 && 
+            strcmp(parametros->filhos[0]->tipo, "LISTA_PARAMETROS") == 0) {
+            No* lista_parametros = parametros->filhos[0];
+            
+            // Verifica cada parâmetro passado
+            for (int j = 0; j < lista_parametros->num_filhos; j++) {
+                No* parametro = lista_parametros->filhos[j];
+                
+                // Obtém o tipo da expressão do parâmetro
+                const char* tipo_expressao = inferir_tipo_expressao(parametro->filhos[1]);
+                
+                if (!tipo_expressao) {
+                    char msg[100];
+                    sprintf(msg, "Não foi possível inferir o tipo do parâmetro %d na função '%s'", 
+                            j + 1, nome_funcao);
+                    erro_semantico(msg, no->linha);
+                }
+            }
+        }
+    }
+}
+
+void verificar_funcao(No* no) {
+    if (!no || strcmp(no->tipo, "FUNCAO") != 0) return;
+
+    // Extrai o tipo de retorno da função
+    const char* tipo_retorno = no->filhos[0]->valor;
+
+    // Nome da função (segundo parâmetro)
+    const char* nome_funcao = no->valor;
+
+    // Verifica declarações duplicadas de função
+    verificar_declaracao_duplicada(tabela, nome_funcao, no->linha);
+
+    // Verifica os parâmetros
+    if (no->num_filhos >= 2) {
+        No* parametros = no->filhos[1];  // Nó de PARAMETROS
+        
+        // Conjunto para verificar parâmetros duplicados
+        TabelaSimbolos* tabela_parametros = criar_tabela_simbolos();
+
+        // Remove a linha que estava criando um novo escopo
+        // Escopo* escopo_parametros = criar_escopo();
+
+        if (parametros && strcmp(parametros->tipo, "PARAMETROS") == 0) {
+            // Se os parâmetros não estão vazios
+            if (parametros->num_filhos > 0 && 
+                strcmp(parametros->filhos[0]->tipo, "LISTA_PARAMETROS") == 0) {
+                
+                No* lista_parametros = parametros->filhos[0];
+
+                // Percorre os parâmetros
+                for (int i = 0; i < lista_parametros->num_filhos; i++) {
+                    No* parametro = lista_parametros->filhos[i];
+                    
+                    if (strcmp(parametro->tipo, "PARAMETRO") == 0) {
+                        // Tipo do parâmetro (primeiro filho)
+                        const char* tipo_parametro = parametro->filhos[0]->valor;
+                        
+                        // Nome do parâmetro (valor do nó)
+                        const char* nome_parametro = parametro->valor;
+
+                        // Verifica parâmetros duplicados
+                        verificar_declaracao_duplicada(tabela_parametros, nome_parametro, parametro->linha);
+
+                        // Adiciona o parâmetro à tabela de parâmetros 
+                        adicionar_simbolo(tabela_parametros, nome_parametro, tipo_parametro, "parametro", parametro->linha);
+                        
+                        // Adiciona o parâmetro à tabela de símbolos global
+                        adicionar_simbolo(tabela, nome_parametro, tipo_parametro, "parametro", parametro->linha);
+                        
+                        // Adiciona o parâmetro à tabela de símbolos do escopo atual
+                        adicionar_simbolo(escopo_atual->tabela, nome_parametro, tipo_parametro, "parametro", parametro->linha);
+                    }
+                }
+            }
+        }
+
+        // Libera a tabela temporária de parâmetros
+        liberar_tabela(tabela_parametros);
+    }
+
+    // Adiciona a função à tabela de símbolos
+    adicionar_simbolo(tabela, nome_funcao, tipo_retorno, "funcao", no->linha);
+
+    // Verificações específicas para a função main
+    if (strcmp(nome_funcao, "main") == 0) {
+        // Verifica o tipo de retorno da main (permite int ou void)
+        if (strcmp(tipo_retorno, "int") != 0 && strcmp(tipo_retorno, "void") != 0) {
+            char msg[200];
+            sprintf(msg, "Função main deve retornar 'int' ou 'void', encontrado '%s'", tipo_retorno);
+            erro_semantico(msg, no->linha);
+        }
+    }
+
+    // Define o tipo de retorno global para verificações posteriores
+    if (tipo_funcao_atual) free(tipo_funcao_atual);
+    tipo_funcao_atual = strdup(tipo_retorno);
+}
+
 void registrar_variavel_for(No* no) {
     if (no->filhos[0] && strcmp(no->filhos[0]->tipo, "ATRIBUICAO") == 0) {
         No* id_no = no->filhos[0]->filhos[0];
@@ -1108,6 +1480,14 @@ void registrar_variavel_for(No* no) {
 
 void analisar_no(No* no) {
     if (!no || no->verificado) return;
+
+    if (strcmp(no->tipo, "FUNCAO") == 0) {
+        verificar_funcao(no);
+    }
+
+    if (strcmp(no->tipo, "CHAMADA_FUNCAO") == 0) {
+        verificar_chamada_funcao(no);
+    }
     
     if (strcmp(no->tipo, "FOR") == 0) {
         registrar_variavel_for(no);  // Registra variável antes das verificações
@@ -1132,6 +1512,43 @@ void analisar_no(No* no) {
     else if (strcmp(no->tipo, "WHILE") == 0) verificar_repeticao(no);
     else if (strcmp(no->tipo, "RETURN") == 0) verificar_return(no);
     else if (strcmp(no->tipo, "SCAN") == 0) verificar_scan(no);
+    else if (strcmp(no->tipo, "ACESSO_VETOR") == 0 || strcmp(no->tipo, "ATRIBUICAO_VETOR") == 0) {
+        verificar_acesso_vetor(no);
+    }
+    else if (strcmp(no->tipo, "DECLARACAO_VETOR") == 0) {
+        // Se tiver inicialização (lista de valores)
+        if (no->num_filhos >= 2 && no->filhos[1] && 
+            strcmp(no->filhos[1]->tipo, "LISTA_VALORES") == 0) {
+            
+            // Extrai o tipo base e tamanho do vetor
+            char* tipo_str = strdup(no->filhos[0]->valor);
+            int tamanho_vetor = 0;
+            
+            // Extrai o tamanho do vetor do nome do nó
+            char* valor_no = strdup(no->valor);
+            char* inicio = strchr(valor_no, '[');
+            if (inicio) {
+                inicio++; // Pula o '['
+                char* fim = strchr(inicio, ']');
+                if (fim) {
+                    *fim = '\0';
+                    tamanho_vetor = atoi(inicio);
+                }
+            }
+            free(valor_no);
+            
+            // Remove qualquer '[' do tipo
+            char* colchete = strchr(tipo_str, '[');
+            if (colchete) {
+                *colchete = '\0';
+            }
+            
+            // Verifica a compatibilidade dos valores e o tamanho
+            verificar_lista_valores(no->filhos[1], tipo_str, tamanho_vetor);
+            
+            free(tipo_str);
+        }
+    }
     
     // Processa os filhos recursivamente
     for (int i = 0; i < no->num_filhos; i++) {
