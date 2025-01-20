@@ -236,6 +236,12 @@ declaracao_variavel:
         $$ = criar_no("DECLARACAO_STRING", $2);
         adicionar_filho($$, $1);
         adicionar_filho($$, criar_no("STRING", $6));
+
+        // Verifica se é uma variável char tentando receber uma string
+        if (strcmp($1->valor, "char") == 0 && !strstr($1->valor, "[")) {
+            erro_semantico("Variável char deve receber um único caractere entre aspas simples", linha);
+        }
+        
         adicionar_simbolo(tabela, $2, $1->valor, "variavel", linha);
     }
     ;
@@ -865,6 +871,16 @@ bool verificar_compatibilidade_tipos(const char* tipo1, const char* tipo2) {
     // Tipos devem ser exatamente iguais
     if (strcmp(tipo1, tipo2) == 0) 
         return true;
+
+    if (strstr(tipo1, "string[") != NULL && strstr(tipo2, "string[") != NULL) {
+        // Compara o tipo base (ignorando o tamanho)
+        char base1[32], base2[32];
+        strncpy(base1, tipo1, strchr(tipo1, '[') - tipo1);
+        strncpy(base2, tipo2, strchr(tipo2, '[') - tipo2);
+        base1[strchr(tipo1, '[') - tipo1] = '\0';
+        base2[strchr(tipo2, '[') - tipo2] = '\0';
+        return strcmp(base1, base2) == 0;
+    }    
     
     // Vetores do mesmo tipo são compatíveis
     if (strstr(tipo1, "[]") != NULL && strstr(tipo2, "[]") != NULL) {
@@ -909,6 +925,9 @@ const char* inferir_tipo_expressao(No* expressao) {
     if (strcmp(expressao->tipo, "ID") == 0) {
         for (int i = 0; i < tabela->quantidade; i++) {
             if (strcmp(tabela->entradas[i].nome, expressao->valor) == 0) {
+                if (strstr(tabela->entradas[i].tipo, "char[")) {
+                    return "string";
+                }
                 return tabela->entradas[i].tipo;
             }
         }
@@ -916,6 +935,7 @@ const char* inferir_tipo_expressao(No* expressao) {
         return NULL;
     }
 
+    // Chamada de função
     if (strcmp(expressao->tipo, "OPERADOR") == 0 && expressao->valor) {
         // Verifica se é uma chamada de função
         for (int i = 0; i < tabela->quantidade; i++) {
@@ -951,6 +971,19 @@ const char* inferir_tipo_expressao(No* expressao) {
 
 void verificar_tipo_operacao(No* no) {
     if (!no || !no->tipo) return;
+
+    if (strcmp(no->tipo, "ATRIBUICAO") == 0) {
+        // Verifica se a atribuição é para char
+        No* id_no = no->filhos[0];
+        No* valor_no = no->filhos[1];
+
+        if (strcmp(id_no->tipo, "CHAR") == 0) {
+            if (strcmp(valor_no->tipo, "STRING") == 0) {
+                erro_semantico("Não é possível atribuir string a uma variável char", no->linha);
+                return;
+            }
+        }
+    }
 
     if (strcmp(no->tipo, "OPERADOR") == 0 && !no->verificado) {
         no->verificado = 1;
@@ -1021,19 +1054,43 @@ void verificar_acesso_vetor(No* no) {
 
     No* indice_no = strcmp(no->tipo, "ACESSO_VETOR") == 0 ? no->filhos[0] : no->filhos[1];
 
+    // Função auxiliar para avaliar o índice e verificar se é negativo
+    int avaliar_indice(No* no) {
+        if (strcmp(no->tipo, "NUM_INT") == 0) {
+            return atoi(no->valor);
+        }
+        else if (strcmp(no->tipo, "OPERADOR_UNARIO") == 0 && strcmp(no->valor, "-") == 0) {
+            // Se for um operador unário de negação
+            if (strcmp(no->filhos[0]->tipo, "NUM_INT") == 0) {
+                return -atoi(no->filhos[0]->valor);
+            }
+        }
+        return 0; // Valor padrão se não conseguir avaliar
+    }
+
     // verifica se o índice é uma expressão numérica
     if (indice_no) {
         const char* tipo_indice = inferir_tipo_expressao(indice_no);
-        // Só verifica o tipo se não for NUM_INT direto
-        if (strcmp(indice_no->tipo, "NUM_INT") != 0 && tipo_indice && strcmp(tipo_indice, "int") != 0) {
+        
+        // Verificação de tipo
+        if (strcmp(indice_no->tipo, "NUM_INT") != 0 && 
+            (tipo_indice && strcmp(tipo_indice, "int") != 0)) {
             erro_semantico("Índice de vetor deve ser do tipo inteiro", no->linha);
+            return;
+        }
+
+        // Verificação de índice negativo
+        int indice = avaliar_indice(indice_no);
+        if (indice < 0) {
+            erro_semantico("Índice de vetor não pode ser negativo", no->linha);
             return;
         }
     }
 
     // se for um número literal, verifica os limites
-    if (indice_no && strcmp(indice_no->tipo, "NUM_INT") == 0) {
-        int indice = atoi(indice_no->valor);
+    if (indice_no && (strcmp(indice_no->tipo, "NUM_INT") == 0 || 
+        (strcmp(indice_no->tipo, "OPERADOR_UNARIO") == 0 && strcmp(indice_no->valor, "-") == 0))) {
+        int indice = avaliar_indice(indice_no);
         
         // Procura o vetor na tabela de símbolos
         for (int i = 0; i < tabela->quantidade; i++) {
@@ -1153,21 +1210,53 @@ void verificar_identificador(No* no) {
 }
 
 void verificar_atribuicao(No* no) {
-    if (strcmp(no->tipo, "ATRIBUICAO") == 0) {
-        const char* id = no->filhos[0]->valor;
+    if (!no) return;
+
+    // Verifica se é uma declaração com atribuição ou uma atribuição simples
+    if (strcmp(no->tipo, "DECLARACAO_VAR") == 0 || strcmp(no->tipo, "ATRIBUICAO") == 0) {
+        No* id_no = no->filhos[0];
+        No* valor_no = NULL;
         const char* tipo_id = NULL;
-        for (int i = 0; i < tabela->quantidade; i++) {
-            if (strcmp(tabela->entradas[i].nome, id) == 0) {
-                tipo_id = tabela->entradas[i].tipo;
-                break;
+        
+        // Para declaração, o tipo está no primeiro filho e o valor no segundo
+        if (strcmp(no->tipo, "DECLARACAO_VAR") == 0) {
+            tipo_id = no->filhos[0]->valor;  // O tipo está diretamente na declaração
+            if (no->num_filhos >= 2) {
+                valor_no = no->filhos[1];
+            }
+        } 
+        // Para atribuição, precisa buscar o tipo na tabela
+        else {
+            valor_no = no->filhos[1];
+            for (int i = 0; i < tabela->quantidade; i++) {
+                if (strcmp(tabela->entradas[i].nome, id_no->valor) == 0) {
+                    tipo_id = tabela->entradas[i].tipo;
+                    break;
+                }
             }
         }
-        const char* tipo_expr = inferir_tipo_expressao(no->filhos[1]);
-        if (tipo_id && tipo_expr && !verificar_compatibilidade_tipos(tipo_id, tipo_expr)) {
-            char msg[200];
-            sprintf(msg, "Atribuição inválida: não é possível atribuir tipo '%s' a variável do tipo '%s'", 
-                    tipo_expr, tipo_id);
-            erro_semantico(msg, no->linha);
+
+        if (valor_no && tipo_id) {
+            // Verifica atribuição em variável char
+            if (strcmp(tipo_id, "char") == 0 && !strstr(tipo_id, "[")) {
+                if (strcmp(valor_no->tipo, "STRING") == 0) {
+                    erro_semantico("Variável char deve receber um único caractere entre aspas simples", no->linha);
+                    return;
+                }
+                if (strcmp(valor_no->tipo, "CHAR") != 0) {
+                    erro_semantico("Variável char deve receber um único caractere entre aspas simples", no->linha);
+                    return;
+                }
+            }
+
+            // Verificação geral de compatibilidade de tipos
+            const char* tipo_expr = inferir_tipo_expressao(valor_no);
+            if (tipo_expr && !verificar_compatibilidade_tipos(tipo_id, tipo_expr)) {
+                char msg[200];
+                sprintf(msg, "Atribuição inválida: não é possível atribuir tipo '%s' a variável do tipo '%s'", 
+                        tipo_expr, tipo_id);
+                erro_semantico(msg, no->linha);
+            }
         }
     }
 }
@@ -1500,6 +1589,9 @@ void analisar_no(No* no) {
             strcmp(no->pai->tipo, "PARAMETRO") != 0) {
             verificar_identificador(no);
         }
+    }
+    else if (strcmp(no->tipo, "DECLARACAO_VAR") == 0) {
+        verificar_atribuicao(no);  // Verifica declaração com atribuição
     }
     else if (strcmp(no->tipo, "ATRIBUICAO") == 0) verificar_atribuicao(no);
     else if (strcmp(no->tipo, "WHILE") == 0) verificar_repeticao(no);
