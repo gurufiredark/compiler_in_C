@@ -61,7 +61,9 @@ bool verificar_variavel_declarada(TabelaSimbolos* tabela, const char* nome);
 void verificar_tipo_operacao(No* no);
 bool verificar_compatibilidade_tipos(const char* tipo1, const char* tipo2);
 bool is_tipo_numerico(const char* tipo);
+bool is_safe_conversion(const char* tipo_destino, const char* tipo_origem); 
 const char* inferir_tipo_expressao(No* expressao);
+void verificar_atribuicao(No* no);
 void verificar_acesso_vetor(No* no);
 void verificar_identificador(No* no);
 void verificar_funcao(No* no);
@@ -236,12 +238,6 @@ declaracao_variavel:
         $$ = criar_no("DECLARACAO_STRING", $2);
         adicionar_filho($$, $1);
         adicionar_filho($$, criar_no("STRING", $6));
-
-        // Verifica se é uma variável char tentando receber uma string
-        if (strcmp($1->valor, "char") == 0 && !strstr($1->valor, "[")) {
-            erro_semantico("Variável char deve receber um único caractere entre aspas simples", linha);
-        }
-        
         adicionar_simbolo(tabela, $2, $1->valor, "variavel", linha);
     }
     ;
@@ -870,20 +866,26 @@ bool verificar_variavel_declarada(TabelaSimbolos* tabela, const char* nome) {
 }
 
 bool verificar_compatibilidade_tipos(const char* tipo1, const char* tipo2) {
-    // Tipos devem ser exatamente iguais
+    // Tipos exatamente iguais são sempre compatíveis
     if (strcmp(tipo1, tipo2) == 0) 
         return true;
 
-    if (strstr(tipo1, "string[") != NULL && strstr(tipo2, "string[") != NULL) {
-        // Compara o tipo base (ignorando o tamanho)
-        char base1[32], base2[32];
-        strncpy(base1, tipo1, strchr(tipo1, '[') - tipo1);
-        strncpy(base2, tipo2, strchr(tipo2, '[') - tipo2);
-        base1[strchr(tipo1, '[') - tipo1] = '\0';
-        base2[strchr(tipo2, '[') - tipo2] = '\0';
-        return strcmp(base1, base2) == 0;
-    }    
-    
+    // Verifica conversões seguras (int para float)
+    if (is_safe_conversion(tipo1, tipo2)) 
+        return true;
+
+    // Não permite atribuir array/string para tipos primitivos
+    if (is_tipo_numerico(tipo1) || strcmp(tipo1, "char") == 0) {
+        if (strstr(tipo2, "[") || strcmp(tipo2, "string") == 0) {
+            return false;
+        }
+    }
+
+    // Permite string literal para array de char
+    if (strstr(tipo1, "char[") && strcmp(tipo2, "string") == 0) {
+        return true;
+    }
+
     // Vetores do mesmo tipo são compatíveis
     if (strstr(tipo1, "[]") != NULL && strstr(tipo2, "[]") != NULL) {
         char base1[32], base2[32];
@@ -894,13 +896,39 @@ bool verificar_compatibilidade_tipos(const char* tipo1, const char* tipo2) {
         return strcmp(base1, base2) == 0;
     }
 
+    // Arrays de string são compatíveis
+    if (strstr(tipo1, "string[") != NULL && strstr(tipo2, "string[") != NULL) {
+        char base1[32], base2[32];
+        strncpy(base1, tipo1, strchr(tipo1, '[') - tipo1);
+        strncpy(base2, tipo2, strchr(tipo2, '[') - tipo2);
+        base1[strchr(tipo1, '[') - tipo1] = '\0';
+        base2[strchr(tipo2, '[') - tipo2] = '\0';
+        return strcmp(base1, base2) == 0;
+    }
 
-    // Se chegou aqui, os tipos não são compatíveis
     return false;
 }
 
 bool is_tipo_numerico(const char* tipo) {
     return (strcmp(tipo, "int") == 0 || strcmp(tipo, "float") == 0);
+}
+
+bool is_safe_conversion(const char* tipo_destino, const char* tipo_origem) {
+    // Tipos devem ser exatamente iguais
+    if (strcmp(tipo_destino, tipo_origem) == 0) 
+        return true;
+
+    // Conversão de float para float
+    if (strcmp(tipo_destino, "float") == 0) {
+        return (strcmp(tipo_origem, "int") == 0);
+    }
+    
+    // Conversão de int para int
+    if (strcmp(tipo_destino, "int") == 0) {
+        return (strcmp(tipo_origem, "float") == 0 );
+    }
+
+    return false;
 }
 
 const char* inferir_tipo_expressao(No* expressao) {
@@ -1292,44 +1320,34 @@ void verificar_identificador(No* no) {
     no->verificado = 1; // Marca como verificado
 }
 
-
-
 void verificar_atribuicao(No* no) {
     if (!no) return;
 
-    // Verifica se é uma declaração com atribuição ou uma atribuição simples
     if (strcmp(no->tipo, "DECLARACAO_VAR") == 0 || strcmp(no->tipo, "ATRIBUICAO") == 0) {
         No* id_no = no->filhos[0];
         No* valor_no = NULL;
         const char* tipo_id = NULL;
 
-        // Para declaração, o tipo está no primeiro filho e o valor no segundo
         if (strcmp(no->tipo, "DECLARACAO_VAR") == 0) {
-            // Verifica se está tentando declarar uma variável como void
             if (strcmp(no->filhos[0]->valor, "void") == 0) {
                 erro_semantico("Tipo void não pode ser usado para declarar variáveis", no->linha);
                 return;
             }
-            tipo_id = no->filhos[0]->valor;  // O tipo está diretamente na declaração
+            tipo_id = no->filhos[0]->valor;
             if (no->num_filhos >= 2) {
                 valor_no = no->filhos[1];
                 
-                // Nova verificação para char literal
-                if (strcmp(tipo_id, "char") == 0 && strcmp(valor_no->tipo, "CHAR") == 0) {
-                    char* valor = valor_no->valor;
-                    // Remove as aspas simples para verificar o conteúdo
-                    char* conteudo = valor + 1;  // Pula a primeira aspas
-                    conteudo[strlen(conteudo) - 1] = '\0';  // Remove a última aspas
-                    
-                    if (strlen(conteudo) > 1) {
-                        erro_semantico("char deve conter apenas um caractere", no->linha);
+                // Verificar se o valor é um ID não declarado
+                if (strcmp(valor_no->tipo, "ID") == 0) {
+                    if (!verificar_variavel_declarada(tabela, valor_no->valor)) {
+                        char msg[100];
+                        sprintf(msg, "Variável '%s' não foi declarada", valor_no->valor);
+                        erro_semantico(msg, no->linha);
                         return;
                     }
                 }
             }
-        } 
-        // Para atribuição, precisa buscar o tipo na tabela
-        else {
+        } else {
             valor_no = no->filhos[1];
             for (int i = 0; i < tabela->quantidade; i++) {
                 if (strcmp(tabela->entradas[i].nome, id_no->valor) == 0) {
@@ -1340,32 +1358,51 @@ void verificar_atribuicao(No* no) {
         }
 
         if (valor_no && tipo_id) {
-            // Verifica atribuição em variável char
+            // Verifica atribuição em variável char (somente para char simples, não arrays)
             if (strcmp(tipo_id, "char") == 0 && !strstr(tipo_id, "[")) {
                 if (strcmp(valor_no->tipo, "STRING") == 0) {
                     erro_semantico("Variável char deve receber um único caractere entre aspas simples", no->linha);
                     return;
                 }
-                if (strcmp(valor_no->tipo, "CHAR") == 0) {
-                    // Verifica tamanho do char literal na atribuição também
-                    char* valor = valor_no->valor;
-                    char* conteudo = valor + 1;
-                    conteudo[strlen(conteudo) - 1] = '\0';
-                    
-                    if (strlen(conteudo) > 1) {
-                        erro_semantico("char deve conter apenas um caractere", no->linha);
-                        return;
-                    }
-                }
             }
 
-            // Verificação geral de compatibilidade de tipos
-            const char* tipo_expr = inferir_tipo_expressao(valor_no);
-            if (tipo_expr && !verificar_compatibilidade_tipos(tipo_id, tipo_expr)) {
-                char msg[200];
-                sprintf(msg, "Atribuição inválida: não é possível atribuir tipo '%s' a variável do tipo '%s'", 
-                        tipo_expr, tipo_id);
-                erro_semantico(msg, no->linha);
+            const char* tipo_expr = NULL;
+            
+            if (strcmp(valor_no->tipo, "ID") == 0) {
+                for (int i = 0; i < tabela->quantidade; i++) {
+                    if (strcmp(tabela->entradas[i].nome, valor_no->valor) == 0) {
+                        tipo_expr = tabela->entradas[i].tipo;
+                        break;
+                    }
+                }
+            } else {
+                tipo_expr = inferir_tipo_expressao(valor_no);
+            }
+
+            if (tipo_expr) {
+                // Verifica atribuição de array/string para tipo primitivo
+                if ((is_tipo_numerico(tipo_id) || strcmp(tipo_id, "char") == 0) && 
+                    !strstr(tipo_id, "[") &&  // Adiciona esta verificação
+                    (strstr(tipo_expr, "[") || strcmp(tipo_expr, "string") == 0)) {
+                    char msg[200];
+                    sprintf(msg, "Incompatibilidade de tipos (%s para %s)", tipo_expr, tipo_id);
+                    erro_semantico(msg, no->linha);
+                    return;
+                }
+                
+                if (!verificar_compatibilidade_tipos(tipo_id, tipo_expr)) {
+                    char msg[200];
+                    sprintf(msg, "Atribuição inválida: não é possível atribuir expressão do tipo '%s' a variável do tipo '%s'", 
+                            tipo_expr, tipo_id);
+                    erro_semantico(msg, no->linha);
+                    return;
+                }
+                
+                // Aviso específico para possível perda de precisão
+                if (strcmp(tipo_expr, "float") == 0 && strcmp(tipo_id, "int") == 0) {
+                    erro_semantico("Atribuição inválida: possível perda de precisão ao atribuir float para int", no->linha);
+                    return;
+                }
             }
         }
     }
@@ -1508,10 +1545,85 @@ void verificar_operadores(No* no) {
 }
 
 void verificar_condicional(No* no) {
-    if (strcmp(no->tipo, "IF") == 0 || strcmp(no->tipo, "IF_ELSE") == 0) {
-        const char* tipo_cond = inferir_tipo_expressao(no->filhos[0]);
+    if (!no || (strcmp(no->tipo, "IF") != 0 && strcmp(no->tipo, "IF_ELSE") != 0)) return;
+
+    // Verifica a condição (primeiro filho)
+    No* condicao = no->filhos[0];
+    if (condicao) {
+        const char* tipo_cond = inferir_tipo_expressao(condicao);
+        
+        // Verifica se é uma string
         if (tipo_cond && strcmp(tipo_cond, "string") == 0) {
             erro_semantico("Não é possível usar string como condição em if", no->linha);
+            return;
+        }
+
+        // Verifica se a condição é uma expressão de comparação válida
+        if (strcmp(condicao->tipo, "OPERADOR") == 0) {
+            const char* op = condicao->valor;
+            if (strcmp(op, "==") != 0 && strcmp(op, "!=") != 0 &&
+                strcmp(op, "<") != 0 && strcmp(op, ">") != 0 &&
+                strcmp(op, "<=") != 0 && strcmp(op, ">=") != 0 &&
+                strcmp(op, "&&") != 0 && strcmp(op, "||") != 0) {
+                erro_semantico("Operador inválido na condição do if", no->linha);
+                return;
+            }
+        }
+        // Se não for um operador, verifica se é um identificador ou número
+        else if (strcmp(condicao->tipo, "ID") == 0) {
+            // Verifica se o identificador foi declarado
+            if (!verificar_variavel_declarada(tabela, condicao->valor)) {
+                char msg[100];
+                sprintf(msg, "Variável '%s' não foi declarada", condicao->valor);
+                erro_semantico(msg, no->linha);
+                return;
+            }
+        }
+        else if (strcmp(condicao->tipo, "NUM_INT") != 0 && 
+                 strcmp(condicao->tipo, "NUM_FLOAT") != 0 &&
+                 strcmp(condicao->tipo, "CHAR") != 0) {
+            erro_semantico("Expressão inválida na condição do if", no->linha);
+            return;
+        }
+    }
+
+    // Verifica o bloco then (segundo filho)
+    if (no->num_filhos >= 2) {
+        No* bloco_then = no->filhos[1];
+        if (bloco_then && strcmp(bloco_then->tipo, "BLOCO") == 0) {
+            No* comandos = bloco_then->filhos[0];
+            if (comandos) {
+                for (int i = 0; i < comandos->num_filhos; i++) {
+                    No* comando = comandos->filhos[i];
+                    // Verifica se é uma expressão solta (número, string, etc.)
+                    if (strcmp(comando->tipo, "NUM_INT") == 0 ||
+                        strcmp(comando->tipo, "NUM_FLOAT") == 0 ||
+                        strcmp(comando->tipo, "STRING") == 0 ||
+                        strcmp(comando->tipo, "CHAR") == 0) {
+                        erro_semantico("Expressão inválida como instrução", comando->linha);
+                    }
+                }
+            }
+        }
+    }
+
+    // Se for IF_ELSE, verifica o bloco else (terceiro filho)
+    if (strcmp(no->tipo, "IF_ELSE") == 0 && no->num_filhos >= 3) {
+        No* bloco_else = no->filhos[2];
+        if (bloco_else && strcmp(bloco_else->tipo, "BLOCO") == 0) {
+            No* comandos = bloco_else->filhos[0];
+            if (comandos) {
+                for (int i = 0; i < comandos->num_filhos; i++) {
+                    No* comando = comandos->filhos[i];
+                    // Verifica se é uma expressão solta (número, string, etc.)
+                    if (strcmp(comando->tipo, "NUM_INT") == 0 ||
+                        strcmp(comando->tipo, "NUM_FLOAT") == 0 ||
+                        strcmp(comando->tipo, "STRING") == 0 ||
+                        strcmp(comando->tipo, "CHAR") == 0) {
+                        erro_semantico("Expressão inválida como instrução", comando->linha);
+                    }
+                }
+            }
         }
     }
 }
@@ -1755,6 +1867,11 @@ void analisar_no(No* no) {
         liberar_escopo();             // Remove o escopo ao sair do FOR
         return;
     }
+
+    // Verifica condição do IF ou IF_ELSE
+    if (strcmp(no->tipo, "IF") == 0 || strcmp(no->tipo, "IF_ELSE") == 0) {
+    verificar_condicional(no);
+    }
     
     // Verificações normais para outros tipos de nós
     if (strcmp(no->tipo, "OPERADOR") == 0) verificar_tipo_operacao(no);
@@ -1875,13 +1992,14 @@ int main(int argc, char** argv) {
     tabela = criar_tabela_simbolos();
     
     printf("\n=== Iniciando análise ===\n");
+    
     // Faz a análise léxica e sintática
-    yyparse();
+    int resultado_parse = yyparse();
 
-    // Inicia a análise semântica se não houver erros léxicos ou sintáticos
-    if (erros_lexicos == 0 && erros_sintaticos == 0) {
-    printf("\n=== Iniciando análise semântica ===\n"); 
-    iniciar_analise_semantica(raiz);
+    // Inicia a análise semântica apenas se não houver erros léxicos ou sintáticos
+    if (erros_lexicos == 0 && erros_sintaticos == 0 && resultado_parse == 0) {
+        // Não precisa imprimir mensagem aqui, pois a análise semântica é parte da análise geral
+        iniciar_analise_semantica(raiz);
     }
     
     printf("\n=== Resumo da análise ===\n");

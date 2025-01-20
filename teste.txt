@@ -3,13 +3,12 @@
 #include <Math.h>
 
 int main() {
-    int x;      
+    int x;
     int x;       // Erro 1: Declaração duplicada de 'x'
     char c;
-    char t = "teste";
 
-    float y = 20;      // Erro 2: Variável 'y' não declarada
-    float resultado = x + y;
+    y = 20.5;      // Erro 2: Variável 'y' não declarada
+    
     int vet[10];
     
     c = x + 5.5;   // Erro 3: Tentativa de atribuir float para char
@@ -18,12 +17,12 @@ int main() {
         x = x + 1;
     }
 
-    char str[];
-    str = "teste";
+    char str[] = "teste";
+    
     x = str;     // Erro 5: Incompatibilidade de tipos (string para int)
 
     
-    for (int i = 0; i < "teste" ; i++) {  // Erro 6: Comparação entre int e string
+    for (int i = 0; i < "teste" ; i++) { 
         x = x + 1;
     }
 
@@ -34,10 +33,11 @@ int main() {
     while (x == "10") {  // Erro 8: Comparação entre int e string
         x = x - 1;
     }
+    
     int a = 2;
     int b = 3;
     int somando = soma(a, b);
-    a++;
+    
 }
 
 int soma(int a, int b) {
