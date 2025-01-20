@@ -395,6 +395,7 @@ comando:
     | comando_print { $$ = $1; }
     | comando_scan { $$ = $1; }
     | return_stmt { $$ = $1; }
+    | expressao ';' { $$ = $1; }
     ;
 
 return_stmt:
@@ -526,17 +527,18 @@ comando_for:
     ;
 
 atribuicao_for:
-    ID '=' expressao
+    tipo ID '=' expressao  // Declaração com tipo
+    {
+        $$ = criar_no("ATRIBUICAO", "");
+        adicionar_filho($$, criar_no("ID", $2));
+        adicionar_filho($$, $1);  // Adiciona o tipo
+        adicionar_filho($$, $4);  // Adiciona a expressão
+    }
+    | ID '=' expressao     // Atribuição simples
     {
         $$ = criar_no("ATRIBUICAO", "");
         adicionar_filho($$, criar_no("ID", $1));
         adicionar_filho($$, $3);
-    }
-    | tipo ID '=' expressao
-    {
-        $$ = criar_no("ATRIBUICAO", "");
-        adicionar_filho($$, criar_no("ID", $2));
-        adicionar_filho($$, $4);
     }
     ;
 
@@ -1012,12 +1014,18 @@ void verificar_tipo_operacao(No* no) {
                     erro_semantico("Divisão por zero detectada", no->linha);
                     return;
                 }
-            } 
+            }
+            else if (strcmp(divisor->tipo, "NUM_FLOAT") == 0 && atof(divisor->valor) == 0.0) {
+                erro_semantico("Divisão por zero detectada", no->linha);
+            }
             else if (strcmp(divisor->tipo, "NUM_FLOAT") == 0) {
                 if (atof(divisor->valor) == 0.0) {
                     erro_semantico("Divisão por zero detectada", no->linha);
                     return;
                 }
+            }
+             else if (strcmp(divisor->tipo, "ID") == 0) {
+                erro_semantico("Possível divisão por zero: divisor é variável", no->linha);
             }
             // Verifica se é uma expressão que resulta em zero
             else if (strcmp(divisor->tipo, "OPERADOR") == 0 && 
@@ -1247,46 +1255,43 @@ void verificar_declaracoes(No* no) {
 }
 
 void verificar_identificador(No* no) {
-    if (no->verificado) return;
-    
-    // Verifica se o ID está dentro de um FOR ou SCAN
+    if (!no || no->verificado) return;
+
     No* atual = no;
     while (atual->pai) {
+        // Verifica se está no contexto de um FOR
         if (strcmp(atual->pai->tipo, "FOR") == 0) {
-            No* init_no = atual->pai->filhos[0];
-            if (init_no && strcmp(init_no->tipo, "ATRIBUICAO") == 0 &&
-                strcmp(init_no->filhos[0]->valor, no->valor) == 0) {
-                no->verificado = 1;
-                return;  // É a variável de controle do FOR
+            No* init_no = atual->pai->filhos[0]; // Inicialização do FOR
+            if (init_no && strcmp(init_no->tipo, "ATRIBUICAO") == 0) {
+                No* id_no = init_no->filhos[0]; // Identificador
+                if (id_no && strcmp(id_no->valor, no->valor) == 0) {
+                    no->verificado = 1;
+                    return;  // É a variável de controle do FOR
+                }
             }
         }
+        // Ignora verificações se for declaração de variável, parâmetro ou SCAN
         if (strcmp(atual->pai->tipo, "PARAMETRO") == 0 || 
             strcmp(atual->pai->tipo, "DECLARACAO_VAR") == 0 ||
             strcmp(atual->pai->tipo, "SCAN") == 0) {
             no->verificado = 1;
-            return;  // Ignora IDs em declarações, parâmetros e SCAN
+            return;
         }
         atual = atual->pai;
     }
 
-    Escopo* escopo_verificar = escopo_atual;
-    while (escopo_verificar) {
-        if (verificar_variavel_declarada(escopo_verificar->tabela, no->valor)) {
-            no->verificado = 1;
-            return;
-        }
-        escopo_verificar = escopo_verificar->pai;
-    }
-    
-    // Se não é variável de controle do FOR nem dentro de SCAN
-    if (!verificar_variavel_declarada(tabela, no->valor)) {
+    // Verifica se a variável foi declarada no escopo atual ou global
+    if (!verificar_variavel_declarada(escopo_atual->tabela, no->valor) &&
+        !verificar_variavel_declarada(tabela, no->valor)) {
         char msg[100];
         sprintf(msg, "Variável '%s' não foi declarada", no->valor);
         erro_semantico(msg, no->linha);
     }
-    
-    no->verificado = 1;
+
+    no->verificado = 1; // Marca como verificado
 }
+
+
 
 void verificar_atribuicao(No* no) {
     if (!no) return;
@@ -1527,23 +1532,55 @@ void verificar_repeticao(No* no) {
         }
     }
     else if (strcmp(no->tipo, "FOR") == 0) {
-        // Verifica condição (segundo filho)
-        if (no->num_filhos >= 2) {
-            No* cond_no = no->filhos[1];
-            if (cond_no && strcmp(cond_no->tipo, "OPERADOR") == 0) {
-                verificar_tipo_operacao(cond_no);
+        // Verifica a inicialização (primeiro filho)
+        if (no->num_filhos >= 1) {
+            No* init_no = no->filhos[0];
+            if (init_no && strcmp(init_no->tipo, "ATRIBUICAO") == 0) {
+                No* id_no = init_no->filhos[0]; // ID da variável
+                No* tipo_no = init_no->filhos[1]; // Tipo da variável (se existir)
+
+                if (id_no && strcmp(id_no->tipo, "ID") == 0) {
+                    // Verifica se é uma declaração com tipo
+                    if (init_no->num_filhos > 2 && strcmp(tipo_no->tipo, "TIPO") == 0) {
+                        adicionar_simbolo(escopo_atual->tabela, id_no->valor, tipo_no->valor, "variavel", no->linha);
+                    } else {
+                        // Se não for uma declaração, verifica se já foi declarada
+                        if (!verificar_variavel_declarada(escopo_atual->tabela, id_no->valor) &&
+                            !verificar_variavel_declarada(tabela, id_no->valor)) {
+                            char msg[100];
+                            sprintf(msg, "Variável '%s' usada no FOR não foi declarada", id_no->valor);
+                            erro_semantico(msg, no->linha);
+                        }
+                    }
+                }
             }
         }
 
-        // Verifica incremento (terceiro filho)
+        // Verifica condição (segundo filho)
+        if (no->num_filhos >= 2) {
+            No* cond_no = no->filhos[1];
+            if (cond_no) {
+                if (strcmp(cond_no->tipo, "OPERADOR") != 0 ||
+                    !(strcmp(cond_no->valor, "<") == 0 || strcmp(cond_no->valor, ">") == 0 ||
+                    strcmp(cond_no->valor, "==") == 0 || strcmp(cond_no->valor, "!=") == 0 ||
+                    strcmp(cond_no->valor, "<=") == 0 || strcmp(cond_no->valor, ">=") == 0)) {
+                    erro_semantico("Condição do 'for' deve ser uma comparação válida", no->linha);
+                }
+            }
+        }
+
+        // Verifica o incremento/decremento (terceiro filho)
         if (no->num_filhos >= 3) {
             No* inc_no = no->filhos[2];
-            const char* tipo_inc = inferir_tipo_expressao(inc_no);
-            if (tipo_inc && !is_tipo_numerico(tipo_inc)) {
-                erro_semantico("Expressão de incremento do for deve ser numérica", no->linha);
+            if (inc_no) {
+                if (!((strcmp(inc_no->tipo, "OPERADOR_PRE") == 0 || strcmp(inc_no->tipo, "OPERADOR_POS") == 0) &&
+                    (strcmp(inc_no->valor, "++") == 0 || strcmp(inc_no->valor, "--") == 0))) {
+                    erro_semantico("Expressão de incremento ou decremento inválida no 'for'", no->linha);
+                }
             }
         }
     }
+
 }
 
 void verificar_chamada_funcao(No* no) {
@@ -1672,16 +1709,29 @@ void verificar_funcao(No* no) {
 }
 
 void registrar_variavel_for(No* no) {
-    if (no->filhos[0] && strcmp(no->filhos[0]->tipo, "ATRIBUICAO") == 0) {
-        No* id_no = no->filhos[0]->filhos[0];
-        if (id_no && strcmp(id_no->tipo, "ID") == 0) {
-            adicionar_simbolo(tabela, id_no->valor, "int", "variavel", no->linha);
+    if (!no || strcmp(no->tipo, "FOR") != 0) return;
+
+    No* init_no = no->filhos[0]; // Primeiro filho: inicialização
+    if (init_no && strcmp(init_no->tipo, "ATRIBUICAO") == 0) {
+        No* id_no = init_no->filhos[0]; // ID da variável
+        if (init_no->num_filhos >= 3) {  // Se tiver tipo na declaração
+            No* tipo_no = init_no->filhos[1];
+            if (id_no && strcmp(id_no->tipo, "ID") == 0 && 
+                tipo_no && strcmp(tipo_no->tipo, "TIPO") == 0) {
+                adicionar_simbolo(escopo_atual->tabela, id_no->valor, tipo_no->valor, "variavel", no->linha);
+                id_no->verificado = 1;
+            }
         }
     }
 }
 
+
 void analisar_no(No* no) {
     if (!no || no->verificado) return;
+
+    if (strcmp(no->tipo, "ID") == 0 && !no->verificado) {
+    verificar_identificador(no);
+    }
 
     if (strcmp(no->tipo, "FUNCAO") == 0) {
         verificar_funcao(no);
@@ -1692,14 +1742,17 @@ void analisar_no(No* no) {
     }
     
     if (strcmp(no->tipo, "FOR") == 0) {
-        registrar_variavel_for(no);  // Registra variável antes das verificações
-        verificar_repeticao(no);     // Faz todas as verificações do FOR
+        criar_escopo();               // Cria um novo escopo para o FOR
+        registrar_variavel_for(no);   // Registra a variável do FOR no escopo
+        verificar_repeticao(no);      // Verifica condições do FOR
         
-        // Analisa apenas o bloco do FOR (último filho)
-        if (no->num_filhos > 3) {
-            analisar_no(no->filhos[3]);
+        // Processa os filhos dentro do escopo do FOR
+        for (int i = 0; i < no->num_filhos; i++) {
+            analisar_no(no->filhos[i]);
         }
-        return;  // Evita processar os outros filhos novamente
+        
+        liberar_escopo();             // Remove o escopo ao sair do FOR
+        return;
     }
     
     // Verificações normais para outros tipos de nós
