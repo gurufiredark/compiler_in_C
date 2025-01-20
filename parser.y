@@ -990,6 +990,34 @@ void verificar_tipo_operacao(No* no) {
         const char* tipo_esq = inferir_tipo_expressao(no->filhos[0]);
         const char* tipo_dir = inferir_tipo_expressao(no->filhos[1]);
 
+        // verifica se é uma divisão por zero
+        if (strcmp(no->valor, "/") == 0) {
+            No* divisor = no->filhos[1];
+            // Verifica se é um número literal
+            if (strcmp(divisor->tipo, "NUM_INT") == 0) {
+                if (atoi(divisor->valor) == 0) {
+                    erro_semantico("Divisão por zero detectada", no->linha);
+                    return;
+                }
+            } 
+            else if (strcmp(divisor->tipo, "NUM_FLOAT") == 0) {
+                if (atof(divisor->valor) == 0.0) {
+                    erro_semantico("Divisão por zero detectada", no->linha);
+                    return;
+                }
+            }
+            // Verifica se é uma expressão que resulta em zero
+            else if (strcmp(divisor->tipo, "OPERADOR") == 0 && 
+                     strcmp(divisor->valor, "-") == 0) {
+                // Caso de subtração de números iguais (x - x)
+                if (divisor->filhos[0] && divisor->filhos[1] &&
+                    strcmp(divisor->filhos[0]->valor, divisor->filhos[1]->valor) == 0) {
+                    erro_semantico("Possível divisão por zero detectada", no->linha);
+                    return;
+                }
+            }
+        }
+
         // Verifica strings em comparações relacionais
         if (tipo_dir && strcmp(tipo_dir, "string") == 0) {
             if (strcmp(no->valor, "<") == 0 || 
@@ -1214,6 +1242,14 @@ void verificar_atribuicao(No* no) {
 
     // Verifica se é uma declaração com atribuição ou uma atribuição simples
     if (strcmp(no->tipo, "DECLARACAO_VAR") == 0 || strcmp(no->tipo, "ATRIBUICAO") == 0) {
+        if (strcmp(no->tipo, "DECLARACAO_VAR") == 0) {
+            // Verifica se está tentando declarar uma variável como void
+            if (strcmp(no->filhos[0]->valor, "void") == 0) {
+                erro_semantico("Tipo void não pode ser usado para declarar variáveis", no->linha);
+                return;
+            }
+        }
+        
         No* id_no = no->filhos[0];
         No* valor_no = NULL;
         const char* tipo_id = NULL;

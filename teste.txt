@@ -5,11 +5,11 @@
 int main() {
     int x;      
     int x;       // Erro 1: Declaração duplicada de 'x'
-    char c = "teste";
+    char c[] = "teste";
 
-    y = 20;      // Erro 2: Variável 'y' não declarada
+    int y = 20;      // Erro 2: Variável 'y' não declarada
 
-    int vet[-10];
+    int vet[10];
     
     c = x + 5.5;   // Erro 3: Tentativa de atribuir float para char
     
