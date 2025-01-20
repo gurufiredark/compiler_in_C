@@ -548,12 +548,6 @@ atribuicao:
         adicionar_filho($$, $3);  // índice
         adicionar_filho($$, $6);  // valor
     }
-    | ID '=' STRING ';'  /* Atribuição direta de string */
-    {
-        $$ = criar_no("ATRIBUICAO_STRING", "");
-        adicionar_filho($$, criar_no("ID", $1));
-        adicionar_filho($$, criar_no("STRING", $3));
-    }
     ;
 
 expressao:
@@ -1410,9 +1404,6 @@ void verificar_funcao(No* no) {
         // Conjunto para verificar parâmetros duplicados
         TabelaSimbolos* tabela_parametros = criar_tabela_simbolos();
 
-        // Remove a linha que estava criando um novo escopo
-        // Escopo* escopo_parametros = criar_escopo();
-
         if (parametros && strcmp(parametros->tipo, "PARAMETROS") == 0) {
             // Se os parâmetros não estão vazios
             if (parametros->num_filhos > 0 && 
@@ -1451,13 +1442,11 @@ void verificar_funcao(No* no) {
         liberar_tabela(tabela_parametros);
     }
 
-    // Adiciona a função à tabela de símbolos
-    adicionar_simbolo(tabela, nome_funcao, tipo_retorno, "funcao", no->linha);
-
+    // Adiciona a função à tabela de símbolos apenas se não for main
     if (strcmp(nome_funcao, "main") != 0) {
         adicionar_simbolo(tabela, nome_funcao, tipo_retorno, "funcao", no->linha);
     }
-    
+
     // Verificações específicas para a função main
     if (strcmp(nome_funcao, "main") == 0) {
         // Verifica o tipo de retorno da main (permite int ou void)
@@ -1622,7 +1611,7 @@ int main(int argc, char** argv) {
     printf("\n=== Iniciando análise ===\n");
     // Faz a análise léxica e sintática
     yyparse();
-    
+
     // Inicia a análise semântica se não houver erros léxicos ou sintáticos
     if (erros_lexicos == 0 && erros_sintaticos == 0) {
     printf("\n=== Iniciando análise semântica ===\n"); 
