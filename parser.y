@@ -983,6 +983,19 @@ void verificar_tipo_operacao(No* no) {
                 return;
             }
         }
+
+        // Nova verificação para char literal
+        if (valor_no && strcmp(valor_no->tipo, "CHAR") == 0) {
+            // Remove as aspas simples para verificar o conteúdo
+            char* valor = valor_no->valor;
+            char* conteudo = valor + 1;  // Pula a primeira aspas
+            conteudo[strlen(conteudo) - 1] = '\0';  // Remove a última aspas
+            
+            if (strlen(conteudo) > 1) {
+                erro_semantico("char deve conter apenas um caractere", no->linha);
+                return;
+            }
+        }
     }
 
     if (strcmp(no->tipo, "OPERADOR") == 0 && !no->verificado) {
@@ -1017,7 +1030,32 @@ void verificar_tipo_operacao(No* no) {
                 }
             }
         }
+        
+        // Verifica se está tentando fazer operação com char
+        if ((tipo_esq && strcmp(tipo_esq, "char") == 0) ||
+            (tipo_dir && strcmp(tipo_dir, "char") == 0)) {
+            if (strcmp(no->valor, "+") == 0 || 
+                strcmp(no->valor, "-") == 0 || 
+                strcmp(no->valor, "*") == 0 || 
+                strcmp(no->valor, "/") == 0) {
+                erro_semantico("Não é possível realizar operações aritméticas com char", no->linha);
+                return;
+            }
+        }
 
+        bool eh_string_esq = (tipo_esq && (strcmp(tipo_esq, "string") == 0 || strstr(tipo_esq, "char[") != NULL));
+        bool eh_string_dir = (tipo_dir && (strcmp(tipo_dir, "string") == 0 || strstr(tipo_dir, "char[") != NULL));
+
+        if (eh_string_esq || eh_string_dir) {
+            // Se for operador aritmético, gera erro
+            if (strcmp(no->valor, "+") == 0 || 
+                strcmp(no->valor, "-") == 0 || 
+                strcmp(no->valor, "*") == 0 || 
+                strcmp(no->valor, "/") == 0) {
+                erro_semantico("Não é possível realizar operações aritméticas com strings", no->linha);
+                return;
+            }
+        }
         // Verifica strings em comparações relacionais
         if (tipo_dir && strcmp(tipo_dir, "string") == 0) {
             if (strcmp(no->valor, "<") == 0 || 
@@ -1064,6 +1102,19 @@ void verificar_tipo_operacao(No* no) {
                 erro_semantico(msg, no->linha);
             }
         }
+    }
+}
+
+void verificar_char_literal(No* no, int linha) {
+    if (!no) return;
+    
+    // Remove as aspas simples para verificar o conteúdo
+    char* valor = no->valor;
+    char* conteudo = valor + 1;  // Pula a primeira aspas
+    conteudo[strlen(conteudo) - 1] = '\0';  // Remove a última aspas
+    
+    if (strlen(conteudo) > 1) {
+        erro_semantico("char deve conter apenas um caractere", linha);
     }
 }
 
@@ -1242,23 +1293,33 @@ void verificar_atribuicao(No* no) {
 
     // Verifica se é uma declaração com atribuição ou uma atribuição simples
     if (strcmp(no->tipo, "DECLARACAO_VAR") == 0 || strcmp(no->tipo, "ATRIBUICAO") == 0) {
+        No* id_no = no->filhos[0];
+        No* valor_no = NULL;
+        const char* tipo_id = NULL;
+
+        // Para declaração, o tipo está no primeiro filho e o valor no segundo
         if (strcmp(no->tipo, "DECLARACAO_VAR") == 0) {
             // Verifica se está tentando declarar uma variável como void
             if (strcmp(no->filhos[0]->valor, "void") == 0) {
                 erro_semantico("Tipo void não pode ser usado para declarar variáveis", no->linha);
                 return;
             }
-        }
-        
-        No* id_no = no->filhos[0];
-        No* valor_no = NULL;
-        const char* tipo_id = NULL;
-        
-        // Para declaração, o tipo está no primeiro filho e o valor no segundo
-        if (strcmp(no->tipo, "DECLARACAO_VAR") == 0) {
             tipo_id = no->filhos[0]->valor;  // O tipo está diretamente na declaração
             if (no->num_filhos >= 2) {
                 valor_no = no->filhos[1];
+                
+                // Nova verificação para char literal
+                if (strcmp(tipo_id, "char") == 0 && strcmp(valor_no->tipo, "CHAR") == 0) {
+                    char* valor = valor_no->valor;
+                    // Remove as aspas simples para verificar o conteúdo
+                    char* conteudo = valor + 1;  // Pula a primeira aspas
+                    conteudo[strlen(conteudo) - 1] = '\0';  // Remove a última aspas
+                    
+                    if (strlen(conteudo) > 1) {
+                        erro_semantico("char deve conter apenas um caractere", no->linha);
+                        return;
+                    }
+                }
             }
         } 
         // Para atribuição, precisa buscar o tipo na tabela
@@ -1279,9 +1340,16 @@ void verificar_atribuicao(No* no) {
                     erro_semantico("Variável char deve receber um único caractere entre aspas simples", no->linha);
                     return;
                 }
-                if (strcmp(valor_no->tipo, "CHAR") != 0) {
-                    erro_semantico("Variável char deve receber um único caractere entre aspas simples", no->linha);
-                    return;
+                if (strcmp(valor_no->tipo, "CHAR") == 0) {
+                    // Verifica tamanho do char literal na atribuição também
+                    char* valor = valor_no->valor;
+                    char* conteudo = valor + 1;
+                    conteudo[strlen(conteudo) - 1] = '\0';
+                    
+                    if (strlen(conteudo) > 1) {
+                        erro_semantico("char deve conter apenas um caractere", no->linha);
+                        return;
+                    }
                 }
             }
 
@@ -1318,10 +1386,26 @@ void verificar_operador_relacional(const char* tipo_esq, const char* tipo_dir, i
 }
 
 void verificar_operador_aritmetico(const char* tipo_esq, const char* tipo_dir, int linha) {
+    // Verifica se algum dos operandos é string
+    if ((tipo_esq && (strcmp(tipo_esq, "string") == 0 || strstr(tipo_esq, "char[") != NULL)) ||
+        (tipo_dir && (strcmp(tipo_dir, "string") == 0 || strstr(tipo_dir, "char[") != NULL))) {
+        erro_semantico("Não é possível realizar operações aritméticas com strings", linha);
+        return;
+    }
+    
+    // Primeiro verifica se é operação entre char e int/float ou vice-versa
+    if ((strcmp(tipo_esq, "char") == 0 && is_tipo_numerico(tipo_dir)) ||
+        (is_tipo_numerico(tipo_esq) && strcmp(tipo_dir, "char") == 0)) {
+        erro_semantico("Não é possível realizar operações aritméticas entre char e tipos numéricos", linha);
+        return;
+    }
+
+    // Depois verifica se ambos são tipos numéricos
     if (!is_tipo_numerico(tipo_esq) || !is_tipo_numerico(tipo_dir)) {
         char msg[200];
         sprintf(msg, "Operação aritmética inválida entre tipos '%s' e '%s'", tipo_esq, tipo_dir);
         erro_semantico(msg, linha);
+        return;
     }
 }
 

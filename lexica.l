@@ -50,7 +50,7 @@ void erro_lexico(const char* msg) {
 
 [0-9]+                   { yylval.ival = atoi(yytext); return NUM_INT; }
 [0-9]+"."[0-9]+         { yylval.fval = atof(yytext); return NUM_FLOAT; }
-\'[^\']\'               { yylval.sval = strdup(yytext); return CHAR; }
+\'[^\']*\'              { yylval.sval = strdup(yytext); return CHAR; }
 
 \"\$                     { BEGIN(STRING_INTERPOLACAO); yylval.sval = strdup(""); return STRING_START; }
 \"[^\"$][^\"]*\"        { yylval.sval = strdup(yytext); return STRING; }

@@ -3,10 +3,10 @@
 #include <Math.h>
 
 int main() {
-    int x;      
+    int x; 
+    char c = 'AB';     
     int x;       // Erro 1: Declaração duplicada de 'x'
-    char c[] = "teste";
-
+    
     int y = 20;      // Erro 2: Variável 'y' não declarada
 
     int vet[10];
