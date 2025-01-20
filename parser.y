@@ -1454,6 +1454,10 @@ void verificar_funcao(No* no) {
     // Adiciona a função à tabela de símbolos
     adicionar_simbolo(tabela, nome_funcao, tipo_retorno, "funcao", no->linha);
 
+    if (strcmp(nome_funcao, "main") != 0) {
+        adicionar_simbolo(tabela, nome_funcao, tipo_retorno, "funcao", no->linha);
+    }
+    
     // Verificações específicas para a função main
     if (strcmp(nome_funcao, "main") == 0) {
         // Verifica o tipo de retorno da main (permite int ou void)
