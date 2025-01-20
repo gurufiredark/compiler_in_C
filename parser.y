@@ -894,6 +894,7 @@ bool verificar_compatibilidade_tipos(const char* tipo1, const char* tipo2) {
         return strcmp(base1, base2) == 0;
     }
 
+
     // Se chegou aqui, os tipos não são compatíveis
     return false;
 }

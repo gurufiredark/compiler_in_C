@@ -22,8 +22,8 @@ int main() {
     str = "teste";
     x = str;     // Erro 5: Incompatibilidade de tipos (string para int)
 
-    int i;
-    for (i = 0; i > 0 ; i++) {  // Erro 6: Comparação entre int e string
+    
+    for (int i = 0; i < "teste" ; i++) {  // Erro 6: Comparação entre int e string
         x = x + 1;
     }
 
