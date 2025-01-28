@@ -13,7 +13,7 @@ parser.tab.c parser.tab.h: parser.y
 	bison -d parser.y
 
 test: compilador
-	./compilador teste.txt
+	./compilador teste1.txt
 
 clean:
 	rm -f compilador lex.yy.c parser.tab.c parser.tab.h

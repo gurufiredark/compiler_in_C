@@ -1,0 +1,46 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <Math.h>
+
+int main() {
+    int x = 4;
+    char c;
+    int z;
+
+    c = 'p';
+
+    float y = 20.5;      
+    
+    int vet[10];
+    float vet[5] = [1, 2, 3, 4, 5];  
+    
+      
+    
+    if (x > 5) { 
+        x = x + 1;
+    }
+
+    char str[] = "teste";
+         
+
+    for (int i = 0; i < x ; i++) {  
+        y = y + 1;
+    }
+
+    scan(z);  
+
+    print("isso é um teste");
+
+    while (x != 10) {  
+        x = x - 1;
+    }
+    
+    int a = 2;
+    int b = 3;
+    int somando = soma(a, b);
+    
+}
+
+int soma(int a, int b) {
+    return a +b;
+}

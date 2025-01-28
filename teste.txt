@@ -4,33 +4,34 @@
 
 int main() {
     int x;
-    int x;       // Erro 1: Declaração duplicada de 'x'
+    int x;       // Erro : Declaração duplicada de 'x'
     char c;
 
-    y = 20.5;      // Erro 2: Variável 'y' não declarada
+    y = 20.5;      // Erro : Variável 'y' não declarada
     
     int vet[10];
+    float vet[-1] = [1, 2, 3, 4, 5];  // Erro : Índice negativo
     
-    c = x + 5.5;   // Erro 3: Tentativa de atribuir float para char
+    c = x + 5.5;   // Erro : Tentativa de atribuir float para char
     
-    if (c > 5) { // Erro 4: Comparação entre char e int
+    if (c > 5) { // Erro : Comparação entre char e int
         x = x + 1;
     }
 
     char str[] = "teste";
     
-    x = str;     // Erro 5: Incompatibilidade de tipos (string para int)
+    x = str;     // Erro : Incompatibilidade de tipos (string para int)
 
     
-    for (int i = 0; i < "teste" ; i++) { 
+    for (int i = 0; i < "teste" ; i++) {  // Erro : Comparação entre int e string dentro do for
         x = x + 1;
     }
 
-    scan(z);     // Erro 7: Tentativa de ler variável não declarada
+    scan(z);     // Erro : Tentativa de ler variável não declarada
 
     print("isso é um teste");
 
-    while (x == "10") {  // Erro 8: Comparação entre int e string
+    while (x == "10") {  // Erro : Comparação entre int e string
         x = x - 1;
     }
     
@@ -41,5 +42,5 @@ int main() {
 }
 
 int soma(int a, int b) {
-    return "teste";  // Erro 9: Retorno de string em função que deveria retornar int
+    return "teste";  // Erro : Retorno de string em função que deveria retornar int
 }
